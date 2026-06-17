@@ -9,6 +9,6 @@ import { NavbarComponent } from './core/layout/navbar/navbar.component';
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class AppComponent {
+export class App {
   title = 'client-app';
 }
