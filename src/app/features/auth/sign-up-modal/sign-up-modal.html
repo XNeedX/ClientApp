@@ -1,0 +1,92 @@
+<div class="modal-backdrop" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    
+    <button class="close-btn" (click)="onClose()">&times;</button>
+    
+    <h2>Sign up</h2>
+
+    @if (serverError) {
+      <div class="alert alert-error">{{ serverError }}</div>
+    }
+
+    <form [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input 
+          id="email" 
+          type="text" 
+          formControlName="email"
+          [class.invalid-border]="f['email'].invalid && f['email'].touched"
+          placeholder="Enter email"
+        >
+        @if (f['email'].touched && f['email'].invalid) {
+          <div class="error-text">
+            @if (f['email'].errors?.['required']) { <span>Please, enter the email</span> }
+            @if (f['email'].errors?.['email']) { <span>You've entered an invalid email</span> }
+            @if (f['email'].errors?.['notUnique']) { <span>User with this email already exists</span> }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-with-icon">
+          <input 
+            id="password" 
+            [type]="passwordVisible ? 'text' : 'password'" 
+            formControlName="password"
+            [class.invalid-border]="f['password'].invalid && f['password'].touched"
+            placeholder="Enter password"
+          >
+          <button type="button" class="icon-btn" (click)="toggleVisibility('password')">
+            {{ passwordVisible ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        @if (f['password'].touched && f['password'].invalid) {
+          <div class="error-text">
+            @if (f['password'].errors?.['required']) { <span>Please, enter the password</span> }
+            @if (f['password'].errors?.['minlength'] || f['password'].errors?.['maxlength']) { 
+              <span>Password must be between 6 and 15 characters</span> 
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Repeat entered password</label>
+        <div class="input-with-icon">
+          <input 
+            id="confirmPassword" 
+            [type]="confirmPasswordVisible ? 'text' : 'password'" 
+            formControlName="confirmPassword"
+            [class.invalid-border]="f['confirmPassword'].invalid && f['confirmPassword'].touched"
+            placeholder="Repeat password"
+          >
+          <button type="button" class="icon-btn" (click)="toggleVisibility('confirm')">
+            {{ confirmPasswordVisible ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        @if (f['confirmPassword'].touched && f['confirmPassword'].invalid) {
+          <div class="error-text">
+            @if (f['confirmPassword'].errors?.['required']) { <span>Please, reenter the password</span> }
+            @if (f['confirmPassword'].errors?.['passwordMismatch'] && !f['confirmPassword'].errors?.['required']) { 
+              <span>The passwords you’ve entered don’t coincide</span> 
+            }
+          </div>
+        }
+      </div>
+
+      <button 
+        type="submit" 
+        class="btn-primary" 
+        [disabled]="signUpForm.invalid || isSubmitting">
+        Sign up
+      </button>
+
+      <div class="footer-link">
+        Already have an account? <a href="javascript:void(0)" (click)="onSignInClick()">Sign in</a>
+      </div>
+    </form>
+  </div>
+</div>
