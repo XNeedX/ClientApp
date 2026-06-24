@@ -1,1 +1,75 @@
-<p>doctor-list works!</p>
+<div class="doctor-list-container">
+  
+  <aside class="filters-sidebar">
+    <h3>Фильтры</h3>
+    
+    <form [formGroup]="filterForm" class="filter-form">
+      <div class="form-group">
+        <label for="searchName">ФИО врача</label>
+        <input id="searchName" type="text" formControlName="searchName" placeholder="Поиск по имени...">
+      </div>
+
+      <div class="form-group">
+        <label for="specialization">Специализация</label>
+        <select id="specialization" formControlName="specialization">
+          <option value="">Все специальности</option>
+          <option value="Therapist">Терапевт</option>
+          <option value="Surgeon">Хирург</option>
+          <option value="Cardiologist">Кардиолог</option>
+          <option value="Neurologist">Невролог</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="officeAddress">Офис</label>
+        <select id="officeAddress" formControlName="officeAddress">
+          <option value="">Все офисы</option>
+          <option value="Office 1">Главный офис (Office 1)</option>
+          <option value="Office 2">Второй филиал (Office 2)</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn-map" (click)="openMap()">
+        📍 Посмотреть на карте
+      </button>
+    </form>
+  </aside>
+
+  <main class="doctors-content">
+    <div class="header-info">
+      <h2>Наши специалисты</h2>
+      <span class="count-badge" *ngIf="!isLoading">Найдено: {{ totalCount }}</span>
+    </div>
+
+    @if (isLoading) {
+      <div class="loading-spinner">Загрузка врачей...</div>
+    } @else {
+      
+      @if (doctors.length > 0) {
+        <div class="doctors-grid">
+          @for (doctor of doctors; track doctor.fullName) {
+            <div class="doctor-card">
+              <div class="doctor-photo">
+                <img [src]="doctor.photoPath || 'assets/default-doctor.png'" alt="Фото врача">
+              </div>
+              
+              <div class="doctor-info">
+                <h4>{{ doctor.fullName }}</h4>
+                <p class="specialization">{{ doctor.specialization }}</p>
+                <p class="experience"><strong>Опыт работы:</strong> {{ doctor.experience }} лет</p>
+                <p class="office"><strong>Офис:</strong> {{ doctor.officeAddress }}</p>
+                
+                <button class="btn-primary">Записаться</button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="no-results">
+          <p>По вашему запросу врачи не найдены. Попробуйте изменить параметры фильтрации.</p>
+        </div>
+      }
+
+    }
+  </main>
+</div>

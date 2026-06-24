@@ -10,7 +10,8 @@ import { CreatePatientDto, PatientProfileDto, PatientMatchResultDto } from '../m
 })
 export class PatientService {
   private http = inject(HttpClient);
-  private baseUrl = `${environment.gatewayUrl}/patients`;
+
+  private baseUrl = `${environment.gatewayUrl}/profiles/patients`;
 
   getProfileByAccountId(accountId: string): Observable<ApiResponse<PatientProfileDto>> {
     return this.http.get<ApiResponse<PatientProfileDto>>(`${this.baseUrl}/account/${accountId}`);

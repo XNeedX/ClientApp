@@ -11,7 +11,8 @@ import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
 })
 export class DoctorService {
   private http = inject(HttpClient);
-  private baseUrl = `${environment.gatewayUrl}/doctors`;
+
+  private baseUrl = `${environment.gatewayUrl}/profiles/doctors`;
 
   getDoctors(filter: DoctorFilterDto): Observable<ApiResponse<PagedResult<DoctorCardDto>>> {
     let params = new HttpParams()

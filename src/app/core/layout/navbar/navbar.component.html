@@ -4,12 +4,10 @@
   </div>
   
   <div class="navbar-menu">
-    <a routerLink="/home" class="nav-link" routerLinkActive="active">Главная</a>
     
     @if (isLoggedIn) {
       <a routerLink="/doctors" class="nav-link" routerLinkActive="active">Врачи</a>
       <a routerLink="/profile" class="nav-link" routerLinkActive="active">Мой профиль</a>
-      <span class="user-greeting">Привет, {{ userName }}!</span>
       <button (click)="logout()" class="btn btn-outline">Выйти</button>
     } @else {
       <button (click)="login()" class="btn btn-primary">Войти</button>

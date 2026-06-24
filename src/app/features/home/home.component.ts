@@ -1,7 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
+
 
 @Component({
   selector: 'app-home',
@@ -12,10 +13,15 @@ import { KeycloakService } from 'keycloak-angular';
 })
 export class HomeComponent implements OnInit {
   private keycloak = inject(KeycloakService);
+  private router = inject(Router);
   isLoggedIn = false;
 
   async ngOnInit() {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
+
+    if (this.isLoggedIn) {
+      this.router.navigate(['/doctors']);
+    }
   }
 
   login() {
