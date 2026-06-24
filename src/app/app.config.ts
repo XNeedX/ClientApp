@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { KeycloakBearerInterceptor, KeycloakService } from 'keycloak-angular';
 import { routes } from './app.routes';
+import { environment } from '../environments/environment';
 
 function initializeKeycloak(keycloak: KeycloakService, platformId: Object) {
   return () => {
@@ -13,7 +14,7 @@ function initializeKeycloak(keycloak: KeycloakService, platformId: Object) {
 
     return keycloak.init({
       config: {
-        url: 'http://localhost:8080',
+        url: environment.keycloakUrl,
         realm: 'InnoClinic',
         clientId: 'public-client'
       },
@@ -24,6 +25,8 @@ function initializeKeycloak(keycloak: KeycloakService, platformId: Object) {
       },
       enableBearerInterceptor: true,
       bearerExcludedUrls: ['/assets']
+    }).catch(error => {
+      console.error('Ошибка инициализации Keycloak.', error);
     });
   };
 }
