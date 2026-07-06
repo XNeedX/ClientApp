@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  gatewayUrl: 'https://localhost:7160',
+  gatewayUrl: 'http://localhost:5137',
   keycloakUrl: 'http://localhost:8080'
 };

@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, startWith } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 
 import { DoctorService } from '../services/doctor.service';
 import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
@@ -30,37 +30,7 @@ export class DoctorList implements OnInit, OnDestroy {
       officeAddress: ['']
     });
 
-    this.filterForm.valueChanges.pipe(
-      startWith(this.filterForm.value), 
-      debounceTime(400), 
-      distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-      switchMap(formValues => {
-        this.isLoading = true;
-        
-        const filter: DoctorFilterDto = {
-          searchName: formValues.searchName,
-          specialization: formValues.specialization,
-          officeAddress: formValues.officeAddress,
-          page: 1,
-          pageSize: 10
-        };
-        
-        return this.doctorService.getDoctors(filter);
-      }),
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response) => {
-        if (response.isSuccess && response.data) {
-          this.doctors = response.data.data;
-          this.totalCount = response.data.totalCount;
-        }
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Ошибка при загрузке списка врачей:', err);
-        this.isLoading = false;
-      }
-    });
+    this.loadDoctors();
   }
 
   ngOnDestroy() {
@@ -68,7 +38,40 @@ export class DoctorList implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onSearch() {
+    this.loadDoctors();
+  }
+
+  private loadDoctors() {
+    this.isLoading = true;
+    const formValues = this.filterForm.value;
+    
+    const filter: DoctorFilterDto = {
+      searchName: formValues.searchName,
+      specialization: formValues.specialization,
+      officeAddress: formValues.officeAddress,
+      page: 1,
+      pageSize: 10
+    };
+    
+    this.doctorService.getDoctors(filter)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.isSuccess && response.data) {
+            this.doctors = response.data.data;
+            this.totalCount = response.data.totalCount;
+          }
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error loading doctors list:', err);
+          this.isLoading = false;
+        }
+      });
+  }
+
   openMap() {
-    console.log('Открытие карты с офисами...');
+    console.log('Opening map with offices...');
   }
 }

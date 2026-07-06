@@ -7,7 +7,7 @@
   align-items: flex-start;
 }
 
-/* Фильтры */
+/* Filters */
 .filters-sidebar {
   width: 280px;
   background: #ffffff;
@@ -52,24 +52,52 @@
   outline: none;
 }
 
-.btn-map {
+.filter-form .label-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.filter-form .label-with-action label {
+  margin-bottom: 0;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #3498db;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.btn-search {
   width: 100%;
   padding: 12px;
-  background: #f8f9fa;
-  color: #2c3e50;
-  border: 1px solid #dcdde1;
+  background: #2c3e50;
+  color: #ffffff;
+  border: none;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
+  margin-top: 10px;
 }
 
-.btn-map:hover {
-  background: #e9ecef;
-  border-color: #bdc3c7;
+.btn-search:hover {
+  background: #1a252f;
 }
 
-/* Основной контент */
+/* Main Content */
 .doctors-content {
   flex: 1;
 }
@@ -101,7 +129,7 @@
   gap: 24px;
 }
 
-/* Карточка врача */
+/* Doctor Card */
 .doctor-card {
   background: #ffffff;
   border-radius: 12px;

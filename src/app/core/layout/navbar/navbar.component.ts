@@ -19,7 +19,7 @@ export class NavbarComponent implements OnInit {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
     
     if (this.isLoggedIn) {
-      this.userName = this.keycloak.getUsername() || 'Пациент';
+      this.userName = this.keycloak.getUsername() || 'Patient';
     }
   }
 
