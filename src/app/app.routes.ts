@@ -22,5 +22,11 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: ['Patient'] },
         loadComponent: () => import('./features/doctors/doctor-list/doctor-list').then(m => m.DoctorList)
+    },
+    {
+        path: 'services',
+        canActivate: [authGuard],
+        data: { roles: ['Patient'] },
+        loadComponent: () => import('./features/services/service-list/service-list').then(m => m.ServiceList)
     }
 ];

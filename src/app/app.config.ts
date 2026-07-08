@@ -1,7 +1,7 @@
 import { APP_INITIALIZER, ApplicationConfig, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS, withFetch } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { KeycloakBearerInterceptor, KeycloakService } from 'keycloak-angular';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
@@ -34,7 +34,7 @@ function initializeKeycloak(keycloak: KeycloakService, platformId: Object) {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withFetch(),withInterceptorsFromDi()), 
+    provideHttpClient(withInterceptorsFromDi()), 
     KeycloakService,
     {
       provide: APP_INITIALIZER,

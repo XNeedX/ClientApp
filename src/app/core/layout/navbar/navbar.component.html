@@ -5,6 +5,7 @@
   
   <div class="navbar-menu">
     @if (isLoggedIn) {
+      <a routerLink="/services" class="nav-link" routerLinkActive="active">Services</a>
       <a routerLink="/doctors" class="nav-link" routerLinkActive="active">Doctors</a>
       <a routerLink="/profile" class="nav-link" routerLinkActive="active">My Profile</a>
       <button (click)="logout()" class="btn btn-outline">Log out</button>

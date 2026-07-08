@@ -1,0 +1,50 @@
+<div class="services-container">
+  <h2>Clinic Services</h2>
+
+  <div class="tabs-header">
+    <button [class.active]="activeTab === 'Consultations'" (click)="setTab('Consultations')">Consultations</button>
+    <button [class.active]="activeTab === 'Diagnostics'" (click)="setTab('Diagnostics')">Diagnostics</button>
+    <button [class.active]="activeTab === 'Analyses'" (click)="setTab('Analyses')">Analyses</button>
+  </div>
+
+  <div class="tab-content">
+    @if (isLoading) {
+      <div class="loading">Loading...</div>
+    } @else {
+
+      @if (activeTab === 'Consultations') {
+        @for (spec of categoryData?.specializations; track spec.id) {
+          <div class="service-group">
+            <h3>{{ spec.name }}</h3>
+            <ul class="service-list">
+              @for (service of spec.services; track service.id) {
+                <li>
+                  <span>{{ service.name }}</span>
+                  <span class="price">${{ service.price }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+        @if (categoryData?.specializations?.length === 0) {
+          <p class="no-data">No consultations available at the moment.</p>
+        }
+      }
+
+      @if (activeTab === 'Diagnostics' || activeTab === 'Analyses') {
+        <ul class="service-list">
+          @for (service of categoryData?.services; track service.id) {
+            <li>
+              <span>{{ service.name }}</span>
+              <span class="price">${{ service.price }}</span>
+            </li>
+          }
+        </ul>
+        @if (categoryData?.services?.length === 0) {
+          <p class="no-data">No services available at the moment.</p>
+        }
+      }
+
+    }
+  </div>
+</div>

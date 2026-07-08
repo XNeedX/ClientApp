@@ -48,10 +48,14 @@
       
       @if (doctors.length > 0) {
         <div class="doctors-grid">
-          @for (doctor of doctors; track doctor.fullName) {
+          @for (doctor of doctors; track $index) {
             <div class="doctor-card">
               <div class="doctor-photo">
-                <img [src]="doctor.photoPath || 'assets/default-doctor.png'" alt="Doctor's photo">
+                <img 
+                  [src]="doctor.photoPath || 'assets/default-doctor.png'" 
+                  (error)="img.src='assets/default-doctor.png'"
+                  #img
+                  alt="Doctor's photo">
               </div>
               
               <div class="doctor-info">
