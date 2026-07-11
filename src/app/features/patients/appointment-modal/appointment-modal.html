@@ -1,0 +1,198 @@
+<div class="modal-backdrop">
+  <div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>Make an Appointment</h2>
+      <button class="close-btn" (click)="onCloseClick()" aria-label="Close modal">&times;</button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" class="appointment-form">
+        
+        <!-- Specialization Combobox (F-1) -->
+        <div class="form-group" [class.has-error]="specializationError()">
+          <label for="specialization">Specialization <span class="required">*</span></label>
+          <div class="combobox-container">
+            <input 
+              id="specialization"
+              type="text" 
+              placeholder="Start typing specialization..." 
+              [value]="specializationSearch()" 
+              (input)="onSpecializationInput($event)"
+              (focus)="showSpecializationDropdown.set(true)"
+              (blur)="onSpecializationBlur()"
+              class="form-control"
+              autocomplete="off"
+            />
+            <div class="dropdown-list" *ngIf="showSpecializationDropdown() && filteredSpecializations().length > 0">
+              <div 
+                *ngFor="let spec of filteredSpecializations()" 
+                (mousedown)="selectSpecialization(spec)" 
+                class="dropdown-item"
+              >
+                {{ spec.name }}
+              </div>
+            </div>
+          </div>
+          <span class="error-text" *ngIf="specializationError()">{{ specializationError() }}</span>
+        </div>
+
+        <!-- Doctor Combobox (F-2) -->
+        <div class="form-group" [class.has-error]="doctorError()">
+          <label for="doctor">Doctor <span class="required">*</span></label>
+          <div class="combobox-container">
+            <input 
+              id="doctor"
+              type="text" 
+              placeholder="Search or click for doctors..." 
+              [value]="doctorSearch()" 
+              (input)="onDoctorInput($event)"
+              (focus)="showDoctorDropdown.set(true)"
+              (blur)="onDoctorBlur()"
+              class="form-control"
+              autocomplete="off"
+            />
+            <div class="dropdown-list" *ngIf="showDoctorDropdown() && filteredDoctors().length > 0">
+              <div 
+                *ngFor="let doc of filteredDoctors()" 
+                (mousedown)="selectDoctor(doc)" 
+                class="dropdown-item"
+              >
+                <div class="doc-item-title">{{ doc.fullName }}</div>
+                <div class="doc-item-subtitle">{{ doc.specialization }} | {{ doc.officeAddress }}</div>
+              </div>
+            </div>
+          </div>
+          <span class="error-text" *ngIf="doctorError()">{{ doctorError() }}</span>
+        </div>
+
+        <!-- Service Combobox (F-3) -->
+        <div class="form-group" [class.has-error]="serviceError()">
+          <label for="service">Service <span class="required">*</span></label>
+          <div class="combobox-container">
+            <input 
+              id="service"
+              type="text" 
+              placeholder="Start typing service name..." 
+              [value]="serviceSearch()" 
+              (input)="onServiceInput($event)"
+              (focus)="showServiceDropdown.set(true)"
+              (blur)="onServiceBlur()"
+              class="form-control"
+              autocomplete="off"
+            />
+            <div class="dropdown-list" *ngIf="showServiceDropdown() && filteredServices().length > 0">
+              <div 
+                *ngFor="let serv of filteredServices()" 
+                (mousedown)="selectService(serv)" 
+                class="dropdown-item"
+              >
+                {{ serv.name }}
+              </div>
+            </div>
+          </div>
+          <span class="error-text" *ngIf="serviceError()">{{ serviceError() }}</span>
+        </div>
+
+        <!-- Office Combobox (F-4) -->
+        <div class="form-group" [class.has-error]="officeError()">
+          <label for="office">Office <span class="required">*</span></label>
+          <div class="combobox-container">
+            <input 
+              id="office"
+              type="text" 
+              placeholder="Search or click for offices..." 
+              [value]="officeSearch()" 
+              (input)="onOfficeInput($event)"
+              (focus)="showOfficeDropdown.set(true)"
+              (blur)="onOfficeBlur()"
+              class="form-control"
+              autocomplete="off"
+            />
+            <div class="dropdown-list" *ngIf="showOfficeDropdown() && filteredOffices().length > 0">
+              <div 
+                *ngFor="let off of filteredOffices()" 
+                (mousedown)="selectOffice(off)" 
+                class="dropdown-item"
+              >
+                <div class="office-item-title">{{ off.name }}</div>
+                <div class="office-item-subtitle">{{ off.address }}</div>
+              </div>
+            </div>
+          </div>
+          <span class="error-text" *ngIf="officeError()">{{ officeError() }}</span>
+        </div>
+
+        <!-- Date Picker (F-5) -->
+        <div class="form-group" [class.has-error]="dateError()">
+          <label for="date">Date <span class="required">*</span></label>
+          <input 
+            id="date" 
+            type="date" 
+            formControlName="date" 
+            class="form-control"
+            [min]="minDate" 
+            (blur)="onDateBlur()"
+          />
+          <span class="error-text" *ngIf="dateError()">{{ dateError() }}</span>
+          <span class="info-text" *ngIf="!isDateTimeEnabled()">Please complete Specialization and Service to enable Date</span>
+        </div>
+
+        <!-- Time Slots Table (F-6) -->
+        <div class="form-group slots-group" [class.has-error]="timeSlotError()">
+          <label>Time Slots <span class="required">*</span></label>
+          <div 
+            class="slots-container" 
+            [class.disabled]="!isDateTimeEnabled() || freeSlots().length === 0"
+            tabindex="0"
+            (blur)="onTimeSlotBlur()"
+          >
+            @if (!isDateTimeEnabled()) {
+              <div class="slots-placeholder">Please choose Specialization and Service first.</div>
+            } @else if (freeSlots().length === 0) {
+              <div class="slots-placeholder">No slots available for this doctor and date.</div>
+            } @else {
+              <div class="slots-grid">
+                <button 
+                  type="button" 
+                  *ngFor="let slot of freeSlots()" 
+                  class="slot-btn"
+                  [class.selected]="selectedSlot() === slot"
+                  (click)="selectSlot(slot)"
+                >
+                  {{ slot }}
+                </button>
+              </div>
+            }
+          </div>
+          <span class="error-text" *ngIf="timeSlotError()">{{ timeSlotError() }}</span>
+        </div>
+
+        <!-- Footer / Action -->
+        <div class="modal-footer">
+          <button 
+            type="submit" 
+            class="btn btn-confirm"
+            [disabled]="appointmentForm.invalid || !selectedSlot()"
+          >
+            Confirm
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Exit Confirmation Dialog (AC-7, AC-8) -->
+<div class="dialog-backdrop" *ngIf="showConfirmExitDialog">
+  <div class="dialog-container">
+    <div class="dialog-body">
+      <p>Do you really want to exit? Your appointment will not be saved.</p>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-dialog-yes" (click)="confirmExit(true)">Yes</button>
+      <button class="btn btn-dialog-no" (click)="confirmExit(false)">No</button>
+    </div>
+  </div>
+</div>

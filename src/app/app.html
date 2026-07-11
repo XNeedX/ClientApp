@@ -3,3 +3,7 @@
 <main class="main-container">
   <router-outlet></router-outlet>
 </main>
+
+@if (modalService.isOpen()) {
+  <app-appointment-modal></app-appointment-modal>
+}

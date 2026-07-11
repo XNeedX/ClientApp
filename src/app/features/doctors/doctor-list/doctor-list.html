@@ -53,7 +53,7 @@
               <div class="doctor-photo">
                 <img 
                   [src]="doctor.photoPath || 'assets/default-doctor.png'" 
-                  (error)="img.src='assets/default-doctor.png'"
+                  (error)="onImageError($event)"
                   #img
                   alt="Doctor's photo">
               </div>

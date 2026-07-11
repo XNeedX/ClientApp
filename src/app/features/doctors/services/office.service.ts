@@ -10,7 +10,7 @@ import { ApiResponse } from '../../../core/models/api-response.model';
 export class OfficeService {
   private http = inject(HttpClient);
 
-  private baseUrl = `${environment.gatewayUrl}/services/offices`; 
+  private baseUrl = `${environment.gatewayUrl}/offices/Offices`; 
 
   getOffices(): Observable<ApiResponse<any[]>> {
     return this.http.get<ApiResponse<any[]>>(this.baseUrl);

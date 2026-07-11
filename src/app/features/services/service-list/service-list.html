@@ -1,50 +1,49 @@
-<div class="services-container">
-  <h2>Clinic Services</h2>
+<div class="service-list-container">
+  <h2>Медицинские услуги: Консультации</h2>
 
-  <div class="tabs-header">
-    <button [class.active]="activeTab === 'Consultations'" (click)="setTab('Consultations')">Consultations</button>
-    <button [class.active]="activeTab === 'Diagnostics'" (click)="setTab('Diagnostics')">Diagnostics</button>
-    <button [class.active]="activeTab === 'Analyses'" (click)="setTab('Analyses')">Analyses</button>
-  </div>
+  <!-- Состояние загрузки -->
+  @if (isLoading()) {
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <p>Загрузка данных...</p>
+    </div>
+  } 
+  
+  <!-- Состояние ошибки -->
+  @else if (errorMessage()) {
+    <div class="error-alert">
+      {{ errorMessage() }}
+    </div>
+  } 
+  
+  <!-- Состояние успешной загрузки -->
+  @else if (categoryData()) {
+    <div class="category-data-content">
+      
+      <!-- ВРЕМЕННЫЙ ВЫВОД: просто покажет все пришедшие данные как текст, 
+           чтобы вы убедились, что запрос работает и 401 ошибки нет -->
+      <pre class="debug-data">{{ categoryData() | json }}</pre>
 
-  <div class="tab-content">
-    @if (isLoading) {
-      <div class="loading">Loading...</div>
-    } @else {
-
-      @if (activeTab === 'Consultations') {
-        @for (spec of categoryData?.specializations; track spec.id) {
-          <div class="service-group">
-            <h3>{{ spec.name }}</h3>
-            <ul class="service-list">
-              @for (service of spec.services; track service.id) {
-                <li>
-                  <span>{{ service.name }}</span>
-                  <span class="price">${{ service.price }}</span>
-                </li>
-              }
-            </ul>
-          </div>
-        }
-        @if (categoryData?.specializations?.length === 0) {
-          <p class="no-data">No consultations available at the moment.</p>
-        }
-      }
-
-      @if (activeTab === 'Diagnostics' || activeTab === 'Analyses') {
-        <ul class="service-list">
-          @for (service of categoryData?.services; track service.id) {
-            <li>
-              <span>{{ service.name }}</span>
-              <span class="price">${{ service.price }}</span>
-            </li>
+      <!-- ПРИМЕР РЕАЛЬНОГО ВЫВОДА (раскомментируйте и подставьте свои поля из ViewCategoryDataDto): -->
+      <!-- 
+      @if (categoryData()?.services?.length > 0) {
+        <div class="services-grid">
+          @for (service of categoryData()?.services; track service.id) {
+            <div class="service-card">
+              <h3>{{ service.serviceName }}</h3>
+              <p class="service-description">{{ service.description }}</p>
+              <div class="service-footer">
+                <span class="price">{{ service.price }} ₽</span>
+                <button class="btn-book">Записаться</button>
+              </div>
+            </div>
           }
-        </ul>
-        @if (categoryData?.services?.length === 0) {
-          <p class="no-data">No services available at the moment.</p>
-        }
+        </div>
+      } @else {
+        <p class="empty-state">В данной категории пока нет доступных услуг.</p>
       }
+      -->
 
-    }
-  </div>
+    </div>
+  }
 </div>

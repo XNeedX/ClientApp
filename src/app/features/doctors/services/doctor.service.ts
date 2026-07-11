@@ -31,4 +31,8 @@ export class DoctorService {
 
     return this.http.get<ApiResponse<PagedResult<DoctorCardDto>>>(this.baseUrl, { params });
   }
+
+  getDoctorsWithIds(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/doctors`);
+  }
 }

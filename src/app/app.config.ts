@@ -20,11 +20,10 @@ function initializeKeycloak(keycloak: KeycloakService, platformId: Object) {
       },
       initOptions: {
         onLoad: 'check-sso',
-        silentCheckSsoRedirectUri:
-          window.location.origin + '/assets/silent-check-sso.html'
+        silentCheckSsoRedirectUri: window.location.origin + '/assets/silent-check-sso.html'
       },
-      enableBearerInterceptor: true,
-      bearerExcludedUrls: ['/assets']
+      enableBearerInterceptor: true, 
+      bearerExcludedUrls: ['/assets'] 
     }).catch(error => {
       console.error('Keycloak initialization error.', error);
     });

@@ -63,3 +63,16 @@
   background-color: #e74c3c;
   color: white;
 }
+
+.btn-appointment {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.btn-appointment:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+}

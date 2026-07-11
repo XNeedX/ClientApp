@@ -5,6 +5,7 @@
   
   <div class="navbar-menu">
     @if (isLoggedIn) {
+      <button (click)="makeAppointment()" class="btn btn-secondary btn-appointment">Make an appointment</button>
       <a routerLink="/services" class="nav-link" routerLinkActive="active">Services</a>
       <a routerLink="/doctors" class="nav-link" routerLinkActive="active">Doctors</a>
       <a routerLink="/profile" class="nav-link" routerLinkActive="active">My Profile</a>

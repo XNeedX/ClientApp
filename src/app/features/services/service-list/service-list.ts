@@ -1,48 +1,45 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, afterNextRender, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClinicService } from '../services/clinic.service';
 import { ViewCategoryDataDto } from '../models/service.model';
 
-type TabType = 'Consultations' | 'Diagnostics' | 'Analyses';
-
 @Component({
   selector: 'app-service-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule], // CommonModule нужен для пайпов, например json
   templateUrl: './service-list.html',
-  styleUrl: './service-list.css'
+  styleUrls: ['./service-list.css']
 })
-export class ServiceList implements OnInit {
+export class ServiceListComponent {
   private clinicService = inject(ClinicService);
 
-  activeTab: TabType = 'Consultations';
-  isLoading = false;
-  categoryData: ViewCategoryDataDto | null = null;
+  // Используем сигналы для хранения состояния
+  public categoryData = signal<ViewCategoryDataDto | null>(null);
+  public isLoading = signal<boolean>(true);
+  public errorMessage = signal<string | null>(null);
 
-  ngOnInit() {
-    this.loadServices(this.activeTab);
+  constructor() {
+    // afterNextRender гарантирует, что запрос уйдет ТОЛЬКО из браузера.
+    // Сервер (SSR) проигнорирует этот блок, и Keycloak отработает корректно.
+    afterNextRender(() => {
+      this.loadServices();
+    });
   }
 
-  setTab(tab: TabType) {
-    if (this.activeTab === tab) return;
-    this.activeTab = tab;
-    this.loadServices(tab);
-  }
+  private loadServices(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
 
-  private loadServices(category: TabType) {
-    this.isLoading = true;
-    this.categoryData = null;
-
-    this.clinicService.getServicesByCategory(category).subscribe({
+    this.clinicService.getServicesByCategory('Consultations').subscribe({
       next: (response) => {
-        if (response.isSuccess && response.data) {
-          this.categoryData = response.data;
-        }
-        this.isLoading = false;
+        // response.data берется из вашей модели ApiResponse
+        this.categoryData.set(response.data ?? null);
+        this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to load services', err);
-        this.isLoading = false;
+        console.error('Ошибка при получении сервисов:', err);
+        this.errorMessage.set('Не удалось загрузить список услуг. Пожалуйста, попробуйте позже.');
+        this.isLoading.set(false);
       }
     });
   }

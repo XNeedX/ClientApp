@@ -27,6 +27,6 @@ export const routes: Routes = [
         path: 'services',
         canActivate: [authGuard],
         data: { roles: ['Patient'] },
-        loadComponent: () => import('./features/services/service-list/service-list').then(m => m.ServiceList)
+        loadComponent: () => import('./features/services/service-list/service-list').then(m => m.ServiceListComponent)
     }
 ];
