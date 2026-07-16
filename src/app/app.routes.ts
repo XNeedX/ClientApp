@@ -13,6 +13,10 @@ export const routes: Routes = [
         component: HomeComponent 
     },
     {
+        path: 'services',
+        loadComponent: () => import('./features/services/services-list/services-list.component').then(m => m.ServicesListComponent)
+    },
+    {
         path: 'onboarding',
         canActivate: [authGuard],
         loadComponent: () => import('./features/patients/onboarding/onboarding').then(m => m.Onboarding)

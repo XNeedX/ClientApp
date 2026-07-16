@@ -1,0 +1,67 @@
+<div class="services-container">
+  <h2>Clinic Services</h2>
+
+  <div class="tabs">
+    <button 
+      [class.active]="activeTab === CategoryEnum.Consultations" 
+      (click)="switchTab(CategoryEnum.Consultations)">
+      Consultations
+    </button>
+    <button 
+      [class.active]="activeTab === CategoryEnum.Diagnostics" 
+      (click)="switchTab(CategoryEnum.Diagnostics)">
+      Diagnostics
+    </button>
+    <button 
+      [class.active]="activeTab === CategoryEnum.Analyses" 
+      (click)="switchTab(CategoryEnum.Analyses)">
+      Analyses
+    </button>
+  </div>
+
+  <div class="tab-content">
+    @if (activeTab === CategoryEnum.Consultations) {
+      <div class="consultations-list">
+        @for (spec of consultations | keyvalue; track spec.key) {
+          <div class="specialization-group">
+            <h3>{{ spec.key }}</h3>
+            <ul>
+              @for (service of spec.value; track service.id) {
+                <li>
+                  <span class="service-name">{{ service.name }}</span>
+                  <span class="service-price">{{ service.price | currency }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    }
+
+    @if (activeTab === CategoryEnum.Diagnostics) {
+      <div class="diagnostics-list">
+        <ul>
+          @for (service of diagnostics; track service.id) {
+            <li>
+              <span class="service-name">{{ service.name }}</span>
+              <span class="service-price">{{ service.price | currency }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    @if (activeTab === CategoryEnum.Analyses) {
+      <div class="analyses-list">
+        <ul>
+          @for (service of analyses; track service.id) {
+            <li>
+              <span class="service-name">{{ service.name }}</span>
+              <span class="service-price">{{ service.price | currency }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</div>
