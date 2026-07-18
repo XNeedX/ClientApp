@@ -13,6 +13,14 @@ export class PatientService {
 
   private baseUrl = `${environment.gatewayUrl}/profiles/patients`;
 
+uploadPhoto(file: File): Observable<ApiResponse<string>> {
+    const formData = new FormData();
+    formData.append('file', file, file.name); 
+    
+    const uploadUrl = `${environment.gatewayUrl}/documents/Documents`; 
+    return this.http.post<ApiResponse<string>>(uploadUrl, formData);
+  }
+
   getProfileByAccountId(accountId: string): Observable<ApiResponse<PatientProfileDto>> {
     return this.http.get<ApiResponse<PatientProfileDto>>(`${this.baseUrl}/account/${accountId}`);
   }

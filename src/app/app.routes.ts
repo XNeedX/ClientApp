@@ -19,7 +19,7 @@ export const routes: Routes = [
     {
         path: 'onboarding',
         canActivate: [authGuard],
-        loadComponent: () => import('./features/patients/onboarding/onboarding').then(m => m.Onboarding)
+        loadComponent: () => import('./features/patients/onboarding/onboarding').then(m => m.OnboardingComponent)
     },
     {
         path: 'doctors',
