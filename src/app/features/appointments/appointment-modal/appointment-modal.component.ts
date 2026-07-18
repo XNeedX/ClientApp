@@ -66,27 +66,75 @@ export class AppointmentModalComponent implements OnInit {
     });
   }
 
+  private isMatch(fieldValue: any, spec: Specialization | undefined): boolean {
+    if (!fieldValue || !spec) return false;
+    
+    const targetId = String(spec.id).toLowerCase().trim();
+    const targetName = String(spec.name).toLowerCase().trim();
+    
+    if (typeof fieldValue === 'object') {
+       const id = String(fieldValue.id || '').toLowerCase().trim();
+       const name = String(fieldValue.name || '').toLowerCase().trim();
+       return id === targetId || name === targetName;
+    }
+
+    const val = String(fieldValue).toLowerCase().trim();
+    return val === targetId || val === targetName || val.includes(targetName) || targetName.includes(val);
+  }
+
   setupFieldDependencies() {
-    this.appointmentForm.get('specialization')?.valueChanges.subscribe(specName => {
-      if (specName) {
-        this.filteredDoctors = this.doctors.filter(d => d.specialization === specName);
-        this.filteredServices = this.services.filter(s => s.specialization?.name === specName);
-        this.checkDateAvailability();
-      }
+    this.appointmentForm.get('specialization')?.valueChanges.subscribe(specId => {
+      if (!specId) return;
+
+      const spec = this.specializations.find(s => s.id === specId);
+      if (!spec) return;
+
+      this.filteredDoctors = this.doctors.filter(d => this.isMatch(d.specialization, spec));
+      this.filteredServices = this.services.filter(s => 
+        this.isMatch(s.specializationId, spec) || this.isMatch(s.specialization, spec)
+      );
+
+      this.checkDateAvailability();
+      this.loadTimeSlots();
     });
 
     this.appointmentForm.get('doctor')?.valueChanges.subscribe(doctorId => {
-      if (doctorId) {
-        const doctor = this.doctors.find(d => d.id === doctorId);
-        if (doctor) {
-          this.appointmentForm.patchValue({ specialization: doctor.specialization }, { emitEvent: false });
-          this.loadTimeSlots();
+      if (!doctorId) return;
+
+      const doctor = this.doctors.find(d => d.id === doctorId);
+      if (doctor) {
+        const spec = this.specializations.find(s => this.isMatch(doctor.specialization, s));
+        
+        if (spec && this.appointmentForm.get('specialization')?.value !== spec.id) {
+          this.appointmentForm.get('specialization')?.setValue(spec.id);
         }
+        
+        this.checkDateAvailability();
+        this.loadTimeSlots();
       }
     });
 
-    this.appointmentForm.get('service')?.valueChanges.subscribe(() => this.checkDateAvailability());
-    this.appointmentForm.get('date')?.valueChanges.subscribe(() => this.loadTimeSlots());
+    this.appointmentForm.get('service')?.valueChanges.subscribe(serviceId => {
+      if (!serviceId) return;
+
+      const service = this.services.find(s => s.id === serviceId);
+      if (service) {
+        const spec = this.specializations.find(s => 
+          this.isMatch(service.specializationId, s) || this.isMatch(service.specialization, s)
+        );
+
+        if (spec && this.appointmentForm.get('specialization')?.value !== spec.id) {
+          this.appointmentForm.get('specialization')?.setValue(spec.id);
+        }
+      }
+      
+      this.checkDateAvailability();
+      this.loadTimeSlots(); 
+    });
+
+    this.appointmentForm.get('date')?.valueChanges.subscribe(() => {
+      this.loadTimeSlots();
+    });
   }
 
   checkDateAvailability() {
@@ -94,23 +142,52 @@ export class AppointmentModalComponent implements OnInit {
     const service = this.appointmentForm.get('service')?.value;
     
     if (spec && service) {
-      this.appointmentForm.get('date')?.enable();
-      this.appointmentForm.get('timeSlot')?.enable();
+      if (this.appointmentForm.get('date')?.disabled) {
+         this.appointmentForm.get('date')?.enable();
+      }
+      if (this.appointmentForm.get('timeSlot')?.disabled) {
+         this.appointmentForm.get('timeSlot')?.enable();
+      }
     } else {
-      this.appointmentForm.get('date')?.disable();
-      this.appointmentForm.get('timeSlot')?.disable();
-      this.timeSlots = [];
+      if (this.appointmentForm.get('date')?.enabled) {
+         this.appointmentForm.get('date')?.disable();
+         this.appointmentForm.get('date')?.setValue('');
+      }
+      if (this.appointmentForm.get('timeSlot')?.enabled) {
+         this.appointmentForm.get('timeSlot')?.disable();
+         this.timeSlots = [];
+         this.appointmentForm.get('timeSlot')?.setValue('');
+      }
     }
   }
 
   loadTimeSlots() {
-    const doctorId = this.appointmentForm.get('doctor')?.value;
-    const serviceId = this.appointmentForm.get('service')?.value; 
-    const date = this.appointmentForm.get('date')?.value;
+    const doctorId = this.appointmentForm.get('doctor')?.value as string;
+    const serviceId = this.appointmentForm.get('service')?.value as string; 
+    const date = this.appointmentForm.get('date')?.value as string;
     
     if (doctorId && serviceId && date) {
       this.appointmentService.getTimeSlots(doctorId, serviceId, date).subscribe(slots => {
-        this.timeSlots = slots ? slots.filter((s: any) => s.isAvailable) : [];
+        if (slots && Array.isArray(slots)) {
+          const rawSlots = slots as any[];
+          
+          this.timeSlots = rawSlots.map((item: any) => {
+            if (typeof item === 'string') {
+              return {
+                time: item,
+                fullDateTime: item,
+                isAvailable: true
+              };
+            }
+            return {
+              time: item.time || '',
+              fullDateTime: item.fullDateTime || item.time || '',
+              isAvailable: item.isAvailable !== undefined ? item.isAvailable : true
+            };
+          });
+        } else {
+          this.timeSlots = [];
+        }
       });
     }
   }
@@ -119,18 +196,9 @@ export class AppointmentModalComponent implements OnInit {
     return `${doctor.lastName} ${doctor.firstName} ${doctor.middleName || ''}`.trim();
   }
 
-  onCloseClick() {
-    this.showConfirmExitDialog = true;
-  }
-
-  confirmExit() {
-    this.showConfirmExitDialog = false;
-    this.close.emit();
-  }
-
-  cancelExit() {
-    this.showConfirmExitDialog = false;
-  }
+  onCloseClick() { this.showConfirmExitDialog = true; }
+  confirmExit() { this.showConfirmExitDialog = false; this.close.emit(); }
+  cancelExit() { this.showConfirmExitDialog = false; }
 
   async onSubmit() {
     const isLoggedIn = await this.keycloak.isLoggedIn();
@@ -142,21 +210,25 @@ export class AppointmentModalComponent implements OnInit {
 
     if (this.appointmentForm.valid) {
       const formValue = this.appointmentForm.getRawValue();
-      
       const userProfile = await this.keycloak.loadUserProfile();
       const patientId = userProfile.id; 
 
       if (!patientId) {
-        console.error('Patient ID not found in Keycloak profile.');
+        console.error('Patient ID not found');
         return;
       }
 
+      const dateStr = formValue.date as string;
+      const timeStr = formValue.timeSlot as string; 
+
+      const combinedTimeSlot = new Date(`${dateStr}T${timeStr}:00`).toISOString();
+
       const command = {
-        serviceId: formValue.service,
-        doctorId: formValue.doctor,
-        officeId: formValue.office,
-        date: new Date(formValue.date).toISOString(),
-        timeSlot: formValue.timeSlot
+        serviceId: formValue.service as string,
+        doctorId: formValue.doctor as string,
+        officeId: formValue.office as string,
+        date: new Date(dateStr).toISOString(), 
+        timeSlot: combinedTimeSlot 
       };
 
       this.appointmentService.createAppointment(patientId, command).subscribe({
@@ -166,7 +238,7 @@ export class AppointmentModalComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error creating appointment:', err);
-          alert('An error occurred while creating the appointment.');
+          alert('An error occurred.');
         }
       });
     }
