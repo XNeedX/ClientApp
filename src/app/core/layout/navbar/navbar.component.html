@@ -12,7 +12,9 @@
 
     @if (isLoggedIn) {
       <a routerLink="/onboarding" class="nav-link" routerLinkActive="active">Onboarding</a>
+      
       <a routerLink="/profile" class="nav-link" routerLinkActive="active">My Profile</a>
+      
       <button (click)="logout()" class="btn btn-outline">Log out</button>
     } @else {
       <button (click)="login()" class="btn btn-primary">Log in / Sign up</button>
