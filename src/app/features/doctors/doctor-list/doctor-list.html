@@ -48,10 +48,13 @@
       
       @if (doctors.length > 0) {
         <div class="doctors-grid">
-          @for (doctor of doctors; track doctor.fullName) {
-            <div class="doctor-card">
+          <!-- Рекомендую трекать по ID (если он есть в DTO), это надежнее, чем fullName -->
+          @for (doctor of doctors; track doctor.id) { 
+            
+            <!-- ДОБАВЛЯЕМ [routerLink] и стиль курсора -->
+            <div class="doctor-card" [routerLink]="['/doctors', doctor.id]" style="cursor: pointer;">
               <div class="doctor-photo">
-                <img [src]="doctor.photoPath || 'assets/default-doctor.png'" alt="Doctor's photo">
+                <img [src]="doctor.photoPath || 'assets/default-doctor.png'" alt="Doctor's photo" (error)="onImageError($event)">
               </div>
               
               <div class="doctor-info">
@@ -60,7 +63,9 @@
                 <p class="experience"><strong>Experience:</strong> {{ doctor.experience }} years</p>
                 <p class="office"><strong>Office:</strong> {{ doctor.officeAddress }}</p>
                 
-                <button class="btn-primary">Book</button>
+                <!-- Если пользователь нажмет "Book", мы не должны переходить в профиль, 
+                     поэтому добавляем $event.stopPropagation() -->
+                <button class="btn-primary" (click)="$event.stopPropagation();">Book</button>
               </div>
             </div>
           }

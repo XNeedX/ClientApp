@@ -1,0 +1,56 @@
+<div class="doctor-page">
+  @if (isLoading) {
+    <p>Loading doctor information...</p>
+  } @else if (doctor) {
+    <button class="btn-back" (click)="goBack()">
+      &larr; Back to Doctors
+    </button>
+
+    <div class="doctor-profile-card">
+      <div class="header-section">
+        <img [src]="doctor.photoPath ? 'http://localhost:5137/files/' + doctor.photoPath : 'assets/images/default-doctor.png'" 
+          alt="Doctor Photo" 
+          class="doctor-photo">
+        
+        <div class="title-section">
+          <h2>{{ doctor.lastName }} {{ doctor.firstName }} {{ doctor.middleName }}</h2>
+          <h4 class="specialization">{{ doctor.specialization }}</h4>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <strong>Office Address:</strong>
+          <span>{{ doctor.officeAddress }}</span>
+        </div>
+
+        <div class="info-item">
+          <strong>Experience:</strong>
+          <span>{{ getExperience(doctor.careerStartYear) }} years</span>
+        </div>
+      </div>
+
+      <div class="services-section">
+      <h3>Services according to specialization</h3>
+      <ul>
+        @for (service of doctor.services || []; track service?.id) {
+          <li>{{ service.name }}</li>
+        } @empty {
+          <li>No services listed.</li>
+        }
+      </ul>
+    </div>
+
+      <button class="btn btn-success make-appointment-btn" (click)="openAppointmentModal()">
+        Make an appointment with the doctor
+      </button>
+    </div>
+  }
+</div>
+
+@if (isAppointmentModalOpen) {
+  <app-appointment-modal 
+    [preselectedDoctorId]="doctor?.id"
+    (close)="isAppointmentModalOpen = false">
+  </app-appointment-modal>
+}

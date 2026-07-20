@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { RouterModule } from '@angular/router';
 
 import { DoctorService } from '../services/doctor.service';
 import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
@@ -10,7 +11,7 @@ import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
 @Component({
   selector: 'app-doctor-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './doctor-list.html',
   styleUrl: './doctor-list.css',
 })

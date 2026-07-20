@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse} from '../../../core/models/api-response.model';
+import { ApiResponse } from '../../../core/models/api-response.model';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
 
@@ -30,5 +30,9 @@ export class DoctorService {
     }
 
     return this.http.get<ApiResponse<PagedResult<DoctorCardDto>>>(this.baseUrl, { params });
+  }
+
+  getDoctorById(id: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${id}`);
   }
 }

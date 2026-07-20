@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AppointmentService } from '../services/appointment.service';
@@ -15,6 +15,8 @@ import { ClinicService, Specialization } from '../../services/models/service.mod
 })
 export class AppointmentModalComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
+
+  @Input() preselectedDoctorId?: string;
   
   private fb = inject(FormBuilder);
   private appointmentService = inject(AppointmentService);
@@ -50,16 +52,23 @@ export class AppointmentModalComponent implements OnInit {
     });
   }
 
-  loadInitialData() {
+ loadInitialData() {
     this.appointmentService.getSpecializations().subscribe(data => this.specializations = data);
+    
     this.appointmentService.getDoctors().subscribe(data => {
       this.doctors = data;
       this.filteredDoctors = data;
+
+      if (this.preselectedDoctorId) {
+        this.appointmentForm.patchValue({ doctor: this.preselectedDoctorId });
+      }
     });
+
     this.appointmentService.getServices().subscribe(data => {
       this.services = data;
       this.filteredServices = data;
     });
+    
     this.appointmentService.getOffices().subscribe(data => {
       this.offices = data;
       this.filteredOffices = data;

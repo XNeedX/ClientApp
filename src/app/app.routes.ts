@@ -30,9 +30,8 @@ export const routes: Routes = [
     {
         path: 'doctors/:id',
         canActivate: [authGuard],
-        data: { roles: ['Patient'] }, // Сохраняем ту же защиту, что и у списка врачей
-        // Убедитесь, что путь к файлу doctor-details указан верно для вашей структуры папок
-        loadComponent: () => import('./features/doctors/doctor-details/doctor-details.component').then(m => m.DoctorDetailsComponent)
+        data: { roles: ['Patient'] }, 
+        loadComponent: () => import('./features/doctors/doctor-details/doctor-details').then(m => m.DoctorDetailsComponent)
     },
     {
     path: 'profile',

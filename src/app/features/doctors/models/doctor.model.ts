@@ -1,4 +1,5 @@
 export interface DoctorCardDto {
+  id: string;
   photoPath?: string;
   fullName: string;
   specialization: string;
