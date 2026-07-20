@@ -9,8 +9,7 @@ import { ApiResponse } from '../../core/models/api-response.model';
 })
 export class SpecializationService {
   private http = inject(HttpClient);
-
-  // Эндпоинт из твоего скриншота Swagger
+  
   private baseUrl = `${environment.gatewayUrl}/services/Specialization`; 
 
   getSpecializations(): Observable<ApiResponse<any[]>> {
