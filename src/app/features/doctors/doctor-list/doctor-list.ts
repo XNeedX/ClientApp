@@ -8,6 +8,7 @@ import { DoctorService } from '../services/doctor.service';
 import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
 import { SpecializationService } from '../../../core/services/specialization.service'; 
 import { OfficeService } from '../../../core/services/office.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-doctor-list',
@@ -26,6 +27,8 @@ export class DoctorList implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<DoctorFilterDto>();
+
+  private readonly FALLBACK_IMAGE = 'assets/images/default-doctor.png';
 
   filterForm!: FormGroup;
   doctors: DoctorCardDto[] = [];
@@ -112,6 +115,14 @@ export class DoctorList implements OnInit, OnDestroy {
     this.onSearch();
   }
 
+getPhotoUrl(photoPath?: string): string {
+    if (!photoPath || photoPath === 'string') {
+      return this.FALLBACK_IMAGE;
+    }
+    
+    return photoPath;
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -186,7 +197,12 @@ export class DoctorList implements OnInit, OnDestroy {
   }
 
   onImageError(event: Event) {
-    const target = event.target as HTMLImageElement;
-    target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%239ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"%3E%3C/path%3E%3Ccircle cx="12" cy="7" r="4"%3E%3C/circle%3E%3C/svg%3E';
-  }
+      const target = event.target as HTMLImageElement;
+ 
+      if (target.src.includes('default-doctor.png')) {
+        return;
+      }
+
+      target.src = this.FALLBACK_IMAGE;
+ }
 }

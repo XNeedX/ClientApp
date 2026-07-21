@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { KeycloakService } from 'keycloak-angular';
 import { PatientService } from '../services/patient.service'; 
 import { environment } from '../../../../environments/environment'; 
+import { PatientProfileDto } from '../models/patient.model';
 
 @Component({
   selector: 'app-profile',
@@ -16,7 +17,7 @@ export class ProfileComponent implements OnInit {
   private patientService = inject(PatientService);
   private cdr = inject(ChangeDetectorRef); 
 
-  profileData: any = null; 
+  profileData: PatientProfileDto | null = null; 
   isLoading = true;
   
   activeTab: 'personal' | 'appointments' = 'personal';
@@ -30,7 +31,7 @@ export class ProfileComponent implements OnInit {
       if (accountId) {
         this.patientService.getProfileByAccountId(accountId).subscribe({
           next: (response) => {
-            this.profileData = response.data;
+            this.profileData = response.data ?? null;
             this.isLoading = false;
             this.cdr.detectChanges(); 
           },
@@ -52,10 +53,21 @@ export class ProfileComponent implements OnInit {
     this.cdr.detectChanges(); 
   }
 
-  getPhotoUrl(photoId: string | null): string {
+  getPhotoUrl(photoId?: string | null): string {
     if (!photoId) {
       return 'assets/images/default-avatar.png'; 
     }
     return `${environment.gatewayUrl}/files/${photoId}`; 
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    const fallbackImage = 'assets/images/default-avatar.png';
+
+    if (target.src.includes('default-avatar.png')) {
+      return;
+    }
+    
+    target.src = fallbackImage;
   }
 }

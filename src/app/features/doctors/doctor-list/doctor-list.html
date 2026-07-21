@@ -69,7 +69,10 @@
           @for (doctor of doctors; track doctor.id) { 
             <div class="doctor-card" [routerLink]="['/doctors', doctor.id]" style="cursor: pointer;">
               <div class="doctor-photo">
-                <img [src]="doctor.photoPath || 'assets/default-doctor.png'" alt="Doctor's photo" (error)="onImageError($event)">
+                <img 
+                  [src]="getPhotoUrl(doctor.photoPath)" 
+                  alt="Doctor's photo" 
+                  (error)="onImageError($event)">
               </div>
               
               <div class="doctor-info">

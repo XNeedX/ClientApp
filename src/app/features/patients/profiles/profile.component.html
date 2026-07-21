@@ -29,9 +29,13 @@
         @if (activeTab === 'personal') {
           <div class="personal-tab-content">
             
-            <div class="photo-section">
-              <img [src]="getPhotoUrl(profileData.photo)" alt="Profile Photo" class="avatar">
-            </div>
+           <div class="photo-section">
+            <img 
+              [src]="getPhotoUrl(profileData.photoPath)" 
+              (error)="onImageError($event)"
+              alt="Profile Photo" 
+              class="avatar">
+          </div>
             
             <div class="info-grid">
               <div class="info-item">
