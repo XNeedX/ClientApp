@@ -23,26 +23,35 @@ export class ProfileComponent implements OnInit {
   activeTab: 'personal' | 'appointments' = 'personal';
 
   async ngOnInit() {
-    const isLoggedIn = await this.keycloak.isLoggedIn();
-    if (isLoggedIn) {
-      const userProfile = await this.keycloak.loadUserProfile();
-      const accountId = userProfile.id;
+    try {
+      const isLoggedIn = await this.keycloak.isLoggedIn();
+      
+      if (isLoggedIn) {
+        const userProfile = await this.keycloak.loadUserProfile();
+        const accountId = userProfile.id;
 
-      if (accountId) {
-        this.patientService.getProfileByAccountId(accountId).subscribe({
-          next: (response) => {
-            this.profileData = response.data ?? null;
-            this.isLoading = false;
-            this.cdr.detectChanges(); 
-          },
-          error: (err) => {
-            console.error('Error fetching profile:', err);
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          }
-        });
+        if (accountId) {
+          this.patientService.getProfileByAccountId(accountId).subscribe({
+            next: (response) => {
+              this.profileData = response.data ?? null;
+              this.isLoading = false;
+              this.cdr.detectChanges(); 
+            },
+            error: (err) => {
+              console.error('Error fetching profile:', err);
+              this.isLoading = false;
+              this.cdr.detectChanges(); 
+            }
+          });
+          
+        }
       }
-    } else {
+      
+      this.isLoading = false;
+      this.cdr.detectChanges(); 
+      
+    } catch (error) {
+      console.error('Keycloak authentication error:', error);
       this.isLoading = false;
       this.cdr.detectChanges(); 
     }

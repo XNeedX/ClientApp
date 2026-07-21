@@ -91,17 +91,25 @@ export class AppointmentModalComponent implements OnInit {
     return val === targetId || val === targetName || val.includes(targetName) || targetName.includes(val);
   }
 
-  setupFieldDependencies() {
+ setupFieldDependencies() {
     this.appointmentForm.get('specialization')?.valueChanges.subscribe(specId => {
       if (!specId) return;
 
       const spec = this.specializations.find(s => s.id === specId);
       if (!spec) return;
 
-      this.filteredDoctors = this.doctors.filter(d => this.isMatch(d.specialization, spec));
-      this.filteredServices = this.services.filter(s => 
-        this.isMatch(s.specializationId, spec) || this.isMatch(s.specialization, spec)
-      );
+      this.filteredDoctors = [...this.doctors];
+      this.filteredServices = [...this.services];
+
+      const currentDoctor = this.appointmentForm.get('doctor')?.value;
+      if (currentDoctor && !this.filteredDoctors.some(d => d.id === currentDoctor)) {
+        this.appointmentForm.get('doctor')?.setValue('', { emitEvent: false });
+      }
+
+      const currentService = this.appointmentForm.get('service')?.value;
+      if (currentService && !this.filteredServices.some(s => s.id === currentService)) {
+        this.appointmentForm.get('service')?.setValue('', { emitEvent: false });
+      }
 
       this.checkDateAvailability();
       this.loadTimeSlots();
@@ -115,7 +123,11 @@ export class AppointmentModalComponent implements OnInit {
         const spec = this.specializations.find(s => this.isMatch(doctor.specialization, s));
         
         if (spec && this.appointmentForm.get('specialization')?.value !== spec.id) {
-          this.appointmentForm.get('specialization')?.setValue(spec.id);
+          this.appointmentForm.get('specialization')?.setValue(spec.id, { emitEvent: false });
+          
+          this.filteredServices = this.services.filter(s => 
+            this.isMatch(s.specializationId, spec) || this.isMatch(s.specialization, spec)
+          );
         }
         
         this.checkDateAvailability();
@@ -133,7 +145,9 @@ export class AppointmentModalComponent implements OnInit {
         );
 
         if (spec && this.appointmentForm.get('specialization')?.value !== spec.id) {
-          this.appointmentForm.get('specialization')?.setValue(spec.id);
+          this.appointmentForm.get('specialization')?.setValue(spec.id, { emitEvent: false });
+          
+          this.filteredDoctors = this.doctors.filter(d => this.isMatch(d.specialization, spec));
         }
       }
       
