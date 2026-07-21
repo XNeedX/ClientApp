@@ -1,0 +1,83 @@
+<div class="onboarding-container">
+  <h2>Create Personal Profile</h2>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+    
+    <div class="form-group">
+      <label>Photo</label>
+      <input type="file" formControlName="photo" (change)="onFileSelected($event)" accept="image/*" class="form-control">
+    </div>
+
+    <div class="form-group">
+      <label>First Name *</label>
+      <input type="text" formControlName="firstName" class="form-control"
+             [class.is-invalid]="isInvalidAndTouched('firstName')">
+      @if (isInvalidAndTouched('firstName')) {
+        <small class="error-text">Please, enter the first name</small>
+      }
+    </div>
+
+    <div class="form-group">
+      <label>Last Name *</label>
+      <input type="text" formControlName="lastName" class="form-control"
+             [class.is-invalid]="isInvalidAndTouched('lastName')">
+      @if (isInvalidAndTouched('lastName')) {
+        <small class="error-text">Please, enter the last name</small>
+      }
+    </div>
+
+    <div class="form-group">
+      <label>Middle Name</label>
+      <input type="text" formControlName="middleName" class="form-control">
+    </div>
+
+    <div class="form-group">
+      <label>Phone Number *</label>
+      <div class="phone-input-wrapper" [class.is-invalid]="isInvalidAndTouched('phoneNumber')">
+        <span class="phone-prefix">+</span>
+        <input type="text" formControlName="phoneNumber" class="form-control phone-input" placeholder="1234567890">
+      </div>
+      @if (isInvalidAndTouched('phoneNumber')) {
+        @if (profileForm.get('phoneNumber')?.hasError('required')) {
+          <small class="error-text">Please, enter the phone number</small>
+        }
+        @if (profileForm.get('phoneNumber')?.hasError('pattern')) {
+          <small class="error-text">You've entered an invalid phone number</small>
+        }
+      }
+    </div>
+
+    <div class="form-group">
+      <label>Date of Birth *</label>
+      <input type="date" formControlName="dateOfBirth" class="form-control"
+             [class.is-invalid]="isInvalidAndTouched('dateOfBirth')">
+      @if (isInvalidAndTouched('dateOfBirth')) {
+        <small class="error-text">Please, select the date</small>
+      }
+    </div>
+
+    <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid">
+      Confirm
+    </button>
+  </form>
+</div>
+
+@if (showMatchModal) {
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <h3>A similar profile has been found, you might have already visited one of our clinics?</h3>
+      
+      <div class="profile-details">
+        <p><strong>First Name:</strong> {{ matchedProfile?.firstName }}</p>
+        <p><strong>Last Name:</strong> {{ matchedProfile?.lastName }}</p>
+        <p><strong>Middle Name:</strong> {{ matchedProfile?.middleName }}</p>
+        <p><strong>Date of Birth:</strong> {{ matchedProfile?.dateOfBirth | date }}</p>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-primary" (click)="confirmMatch()">Yes, it’s me</button>
+        <button type="button" class="btn btn-secondary" (click)="rejectMatch()">No, it’s not me</button>
+      </div>
+    </div>
+  </div>
+}

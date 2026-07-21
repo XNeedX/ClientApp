@@ -1,0 +1,37 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router'; 
+import { KeycloakService } from 'keycloak-angular';
+import { AppointmentModalComponent } from '../../../features/appointments/appointment-modal/appointment-modal.component';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [CommonModule, RouterModule, AppointmentModalComponent], 
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.css']
+})
+export class NavbarComponent implements OnInit {
+  private keycloak = inject(KeycloakService);
+  isLoggedIn = false;
+  userName = '';
+  
+  isAppointmentModalOpen = false;
+
+  async ngOnInit() {
+    this.isLoggedIn = await this.keycloak.isLoggedIn();
+    
+    if (this.isLoggedIn) {
+      const userProfile = await this.keycloak.loadUserProfile();
+      this.userName = userProfile.username || 'Patient';
+    }
+  }
+
+  login() {
+    this.keycloak.login();
+  }
+
+  logout() {
+    this.keycloak.logout(window.location.origin);
+  }
+}

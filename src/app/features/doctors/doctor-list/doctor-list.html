@@ -1,0 +1,97 @@
+<div class="doctor-list-container">
+  
+  <aside class="filters-sidebar">
+    <h3>Filters</h3>
+    
+    <form [formGroup]="filterForm" class="filter-form" (ngSubmit)="onSearch()">
+      
+      <div class="form-group">
+        <label for="searchName">Doctor's Name</label>
+        <input id="searchName" type="text" formControlName="searchName" placeholder="Search by name...">
+      </div>
+
+      <div class="form-group">
+        <label for="specialization">Specialization</label>
+        
+        <input 
+          id="specialization" 
+          type="text" 
+          formControlName="specialization" 
+          list="spec-options" 
+          placeholder="Start typing or select..."
+          autocomplete="off"
+          (blur)="onSpecializationBlur()">
+          
+        <datalist id="spec-options">
+          @for (spec of filteredSpecializations; track spec) {
+            <option [value]="spec"></option>
+          }
+        </datalist>
+
+        @if (filterForm.get('specialization')?.hasError('invalidSpecialization') && filterForm.get('specialization')?.touched) {
+          <span class="error-message" style="color: red; font-size: 12px; margin-top: 4px; display: block;">
+            Incorrect specialization
+          </span>
+        }
+      </div>
+
+      <div class="form-group">
+        <div class="label-with-action">
+          <label for="officeAddress">Office</label>
+          <button type="button" class="btn-link" (click)="openMap()" title="View on map">📍 Map</button>
+        </div>
+        <select id="officeAddress" formControlName="officeAddress" (change)="onSearch()">
+          <option value="">All</option>
+          
+          @for (office of filteredOffices; track office.id) {
+            <option [value]="office.fullAddress">{{ office.fullAddress }}</option>
+          }
+        </select>
+      </div>
+
+      <button type="submit" class="btn-search">Search</button>
+    </form>
+  </aside>
+
+  <main class="doctors-content">
+    <div class="header-info">
+      <h2>Our Specialists</h2>
+      <span class="count-badge" *ngIf="!isLoading">Found: {{ totalCount }}</span>
+    </div>
+
+    @if (isLoading) {
+      <div class="loading-spinner">Loading doctors...</div>
+    } @else {
+      
+      @if (doctors.length > 0) {
+        <div class="doctors-grid">
+          
+          @for (doctor of doctors; track doctor.id) { 
+            <div class="doctor-card" [routerLink]="['/doctors', doctor.id]" style="cursor: pointer;">
+              <div class="doctor-photo">
+                <img 
+                  [src]="getPhotoUrl(doctor.photoPath)" 
+                  alt="Doctor's photo" 
+                  (error)="onImageError($event)">
+              </div>
+              
+              <div class="doctor-info">
+                <h4>{{ doctor.fullName }}</h4>
+                <p class="specialization">{{ doctor.specialization }}</p>
+                <p class="experience"><strong>Experience:</strong> {{ doctor.experience }} years</p>
+                <p class="office"><strong>Office:</strong> {{ doctor.officeAddress }}</p>
+                
+                <button class="btn-primary" (click)="$event.stopPropagation();">Book</button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="no-results">
+          <p>There are no doctors matching this filtration</p>
+        </div>
+      }
+
+    }
+  </main>
+</div>

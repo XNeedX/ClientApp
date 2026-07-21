@@ -1,0 +1,15 @@
+<div class="home-container">
+  <div class="hero-section">
+    <h1>Welcome to InnoClinic</h1>
+    <p>A modern approach to your health. Book appointments with the best specialists in just a few clicks.</p>
+    
+    <div class="action-buttons">
+      @if (isLoggedIn) {
+        <a routerLink="/doctors" class="btn btn-large btn-primary">Find a Doctor</a>
+        <a routerLink="/profile" class="btn btn-large btn-secondary">Go to Profile</a>
+      } @else {
+        <button (click)="login()" class="btn btn-large btn-primary">Log in to book</button>
+      }
+    </div>
+  </div>
+</div>

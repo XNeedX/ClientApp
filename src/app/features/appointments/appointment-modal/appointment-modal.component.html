@@ -1,0 +1,100 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Make an appointment</h2>
+      <button type="button" class="close-btn" (click)="onCloseClick()">×</button>
+    </div>
+
+    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label>Specialization</label>
+        <select formControlName="specialization" class="form-control" 
+                [class.is-invalid]="appointmentForm.get('specialization')?.invalid && appointmentForm.get('specialization')?.touched">
+          <option value="" disabled selected>Select specialization...</option>
+          @for (spec of specializations; track spec.id) {
+            <option [value]="spec.id">{{ spec.name }}</option>
+          }
+        </select>
+        @if (appointmentForm.get('specialization')?.invalid && appointmentForm.get('specialization')?.touched) {
+          <small class="error-text">Please, choose the specialization</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Doctor</label>
+        <select formControlName="doctor" class="form-control"
+                [class.is-invalid]="appointmentForm.get('doctor')?.invalid && appointmentForm.get('doctor')?.touched">
+          <option value="" disabled selected>Select doctor...</option>
+          @for (doc of filteredDoctors; track doc.id) {
+            <option [value]="doc.id">{{ getDoctorFullName(doc) }}</option>
+          }
+        </select>
+        @if (appointmentForm.get('doctor')?.invalid && appointmentForm.get('doctor')?.touched) {
+          <small class="error-text">Please, choose the doctor</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Service</label>
+        <select formControlName="service" class="form-control"
+                [class.is-invalid]="appointmentForm.get('service')?.invalid && appointmentForm.get('service')?.touched">
+          <option value="" disabled selected>Select service...</option>
+          @for (srv of filteredServices; track srv.id) {
+            <option [value]="srv.id">{{ srv.name }}</option>
+          }
+        </select>
+        @if (appointmentForm.get('service')?.invalid && appointmentForm.get('service')?.touched) {
+          <small class="error-text">Please, choose the service</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Office</label>
+        <select formControlName="office" class="form-control"
+                [class.is-invalid]="appointmentForm.get('office')?.invalid && appointmentForm.get('office')?.touched">
+          <option value="" disabled selected>Select office...</option>
+          @for (office of filteredOffices; track office.id) {
+            <option [value]="office.id">{{ office.address }}</option>
+          }
+        </select>
+        @if (appointmentForm.get('office')?.invalid && appointmentForm.get('office')?.touched) {
+          <small class="error-text">Please, choose the office</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" formControlName="date" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Time Slot</label>
+        <select formControlName="timeSlot" class="form-control">
+          <option value="" disabled selected>Select time...</option>
+          @for (slot of timeSlots; track slot.fullDateTime) {
+            <option [value]="slot.fullDateTime">{{ slot.time }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary" [disabled]="appointmentForm.invalid">
+          Confirm
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+@if (showConfirmExitDialog) {
+  <div class="dialog-overlay">
+    <div class="dialog-box">
+      <p>Do you really want to exit? Your appointment will not be saved.</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-danger" (click)="confirmExit()">Yes</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelExit()">No</button>
+      </div>
+    </div>
+  </div>
+}
