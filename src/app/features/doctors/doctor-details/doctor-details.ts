@@ -3,6 +3,8 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { DoctorService } from '../services/doctor.service'; 
 import { AppointmentModalComponent } from '../../../features/appointments/appointment-modal/appointment-modal.component';
+import { environment } from '../../../../environments/environment'; 
+import { DoctorDetailsDto } from '../models/doctor.model';
 
 @Component({
   selector: 'app-doctor-details',
@@ -15,10 +17,9 @@ export class DoctorDetailsComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private location = inject(Location); 
   private doctorService = inject(DoctorService);
-  
   private cdr = inject(ChangeDetectorRef);
 
-  doctor: any = null;
+  doctor: DoctorDetailsDto | null = null;
   isLoading = true;
   isAppointmentModalOpen = false;
 
@@ -41,17 +42,27 @@ export class DoctorDetailsComponent implements OnInit {
       next: (response: any) => {
         this.doctor = response.data || response;
         this.isLoading = false;
-        
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading doctor details:', err);
         alert('Could not load doctor details.');
         this.isLoading = false;
-        
         this.cdr.detectChanges();
       }
     });
+  }
+
+  getPhotoUrl(photoPath?: string): string {
+    if (!photoPath) {
+      return 'assets/images/default-doctor.png';
+    }
+    return `${environment.gatewayUrl}/files/${photoPath}`;
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    target.src = 'assets/images/default-doctor.png'; 
   }
 
   getExperience(startYear: number): number {

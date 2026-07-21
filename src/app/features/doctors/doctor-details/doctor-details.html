@@ -8,7 +8,9 @@
 
     <div class="doctor-profile-card">
       <div class="header-section">
-        <img [src]="doctor.photoPath ? 'http://localhost:5137/files/' + doctor.photoPath : 'assets/images/default-doctor.png'" 
+        <img 
+          [src]="getPhotoUrl(doctor.photoPath)" 
+          (error)="onImageError($event)"
           alt="Doctor Photo" 
           class="doctor-photo">
         

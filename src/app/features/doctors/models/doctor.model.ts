@@ -14,3 +14,15 @@ export interface DoctorFilterDto {
   page: number;
   pageSize: number;
 }
+
+export interface DoctorDetailsDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  photoPath?: string;
+  specialization: string;
+  officeAddress: string;
+  careerStartYear: number;
+  services?: { id: string; name: string }[];
+}
