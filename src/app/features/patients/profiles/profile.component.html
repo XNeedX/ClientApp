@@ -9,7 +9,6 @@
   } @else {
     <div class="profile-card">
       
-      <!-- AC-2: Navigation Tabs -->
       <div class="tabs-header">
         <button 
           class="tab-btn" 
@@ -25,19 +24,15 @@
         </button>
       </div>
 
-      <!-- Tab Content -->
       <div class="tab-body">
         
-        <!-- AC-4: Personal Information Tab -->
         @if (activeTab === 'personal') {
           <div class="personal-tab-content">
             
-            <!-- Photo -->
             <div class="photo-section">
               <img [src]="getPhotoUrl(profileData.photo)" alt="Profile Photo" class="avatar">
             </div>
             
-            <!-- Information Grid -->
             <div class="info-grid">
               <div class="info-item">
                 <span class="label">First name</span>
@@ -61,7 +56,6 @@
 
               <div class="info-item">
                 <span class="label">Date of birth</span>
-                <!-- Используем встроенный пайп Angular для красивого форматирования даты -->
                 <span class="value">{{ profileData.dateOfBirth | date:'dd.MM.yyyy' }}</span>
               </div>
             </div>
@@ -69,12 +63,10 @@
           </div>
         }
 
-        <!-- Appointment Results Tab -->
         @if (activeTab === 'appointments') {
           <div class="appointments-tab-content">
             <h3>Your Appointment Results</h3>
             <p class="text-muted">No appointments found yet.</p>
-            <!-- В будущем сюда можно добавить таблицу или список записей -->
           </div>
         }
       </div>

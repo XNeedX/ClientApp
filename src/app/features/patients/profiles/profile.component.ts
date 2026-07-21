@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KeycloakService } from 'keycloak-angular';
-import { PatientService } from '../services/patient.service'; // Убедитесь в правильности пути
-import { environment } from '../../../../environments/environment'; // Убедитесь в правильности пути
+import { PatientService } from '../services/patient.service'; 
+import { environment } from '../../../../environments/environment'; 
 
 @Component({
   selector: 'app-profile',
@@ -14,12 +14,11 @@ import { environment } from '../../../../environments/environment'; // Убед�
 export class ProfileComponent implements OnInit {
   private keycloak = inject(KeycloakService);
   private patientService = inject(PatientService);
+  private cdr = inject(ChangeDetectorRef); 
 
-  // Переменные для хранения данных
-  profileData: any = null; // Сюда ляжет ваш PatientProfileDto
+  profileData: any = null; 
   isLoading = true;
   
-  // Управление вкладками (AC-3: по умолчанию открыта personal)
   activeTab: 'personal' | 'appointments' = 'personal';
 
   async ngOnInit() {
@@ -29,35 +28,34 @@ export class ProfileComponent implements OnInit {
       const accountId = userProfile.id;
 
       if (accountId) {
-        // Вызываем метод из вашего сервиса
         this.patientService.getProfileByAccountId(accountId).subscribe({
           next: (response) => {
             this.profileData = response.data;
             this.isLoading = false;
+            this.cdr.detectChanges(); 
           },
           error: (err) => {
             console.error('Error fetching profile:', err);
             this.isLoading = false;
+            this.cdr.detectChanges();
           }
         });
       }
     } else {
       this.isLoading = false;
+      this.cdr.detectChanges(); 
     }
   }
 
-  // Метод для переключения вкладок (AC-2)
   switchTab(tab: 'personal' | 'appointments') {
     this.activeTab = tab;
+    this.cdr.detectChanges(); 
   }
 
-  // Вспомогательный метод для получения фото. 
-  // Если у вас есть эндпоинт GET /files/{id}, он склеит правильный URL
   getPhotoUrl(photoId: string | null): string {
     if (!photoId) {
-      return 'assets/images/default-avatar.png'; // Поместите стандартную картинку в assets
+      return 'assets/images/default-avatar.png'; 
     }
-    // Замените '/files/' на маршрут вашего контроллера файлов, если он другой
     return `${environment.gatewayUrl}/files/${photoId}`; 
   }
 }

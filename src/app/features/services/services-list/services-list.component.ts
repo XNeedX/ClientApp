@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClinicServiceService } from '../services/clinic-service.service';
 import { ClinicService, Category } from '../models/service.model';
@@ -12,6 +12,7 @@ import { ClinicService, Category } from '../models/service.model';
 })
 export class ServicesListComponent implements OnInit {
   private clinicServiceService = inject(ClinicServiceService);
+  private cdr = inject(ChangeDetectorRef); 
 
   public CategoryEnum = Category;
   activeTab: Category = Category.Consultations; 
@@ -55,8 +56,11 @@ export class ServicesListComponent implements OnInit {
         }
 
         this.loadedCategories.add(category);
+        this.cdr.detectChanges(); 
       },
-      error: (err: unknown) => console.error(`Error fetching services for category ${category}`, err)
+      error: (err: unknown) => {
+        console.error(`Error fetching services for category ${category}`, err);
+      }
     });
   }
 }

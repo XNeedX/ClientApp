@@ -5,7 +5,6 @@ import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { ClinicService, Category } from '../models/service.model';
 
-// Описываем структуру ответа вашего микросервиса
 export interface ServiceApiResponse {
   data: {
     specializations: any[];

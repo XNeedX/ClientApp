@@ -11,7 +11,6 @@
   overflow: hidden;
 }
 
-/* Tabs Header */
 .tabs-header {
   display: flex;
   border-bottom: 1px solid #e0e0e0;
@@ -41,12 +40,10 @@
   background-color: #fff;
 }
 
-/* Tab Body */
 .tab-body {
   padding: 30px;
 }
 
-/* Personal Info Grid */
 .personal-tab-content {
   display: flex;
   flex-direction: column;
@@ -94,7 +91,6 @@
   border-radius: 4px;
 }
 
-/* Responsive (для мобильных телефонов) */
 @media (max-width: 600px) {
   .info-grid {
     grid-template-columns: 1fr;

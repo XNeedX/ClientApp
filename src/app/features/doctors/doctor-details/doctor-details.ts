@@ -16,7 +16,6 @@ export class DoctorDetailsComponent implements OnInit {
   private location = inject(Location); 
   private doctorService = inject(DoctorService);
   
-  // 1. Инжектируем ChangeDetectorRef
   private cdr = inject(ChangeDetectorRef);
 
   doctor: any = null;
@@ -30,7 +29,7 @@ export class DoctorDetailsComponent implements OnInit {
         this.loadDoctorDetails(doctorId);
       } else {
         this.isLoading = false;
-        this.cdr.detectChanges(); // Обновляем вид
+        this.cdr.detectChanges(); 
       }
     });
   }
@@ -43,7 +42,6 @@ export class DoctorDetailsComponent implements OnInit {
         this.doctor = response.data || response;
         this.isLoading = false;
         
-        // 2. Явно вызываем обнаружение изменений после получения данных
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -51,7 +49,6 @@ export class DoctorDetailsComponent implements OnInit {
         alert('Could not load doctor details.');
         this.isLoading = false;
         
-        // Обновляем вид даже при ошибке
         this.cdr.detectChanges();
       }
     });

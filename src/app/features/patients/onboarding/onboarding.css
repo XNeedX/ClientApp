@@ -25,7 +25,6 @@ label {
   box-sizing: border-box;
 }
 
-/* Красная рамка для невалидных полей */
 .is-invalid {
   border-color: #dc3545 !important;
 }
@@ -37,7 +36,6 @@ label {
   display: block;
 }
 
-/* Стилизация поля телефона с нестираемым префиксом '+' */
 .phone-input-wrapper {
   display: flex;
   align-items: center;
@@ -69,7 +67,6 @@ label {
   outline: none;
 }
 
-/* Стили модального окна совпадений (похоже на appointment-modal) */
 .modal-overlay {
   position: fixed;
   top: 0;
