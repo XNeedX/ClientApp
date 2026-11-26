@@ -1,1 +1,166 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  color-scheme: light;
+  font-family: Roboto, 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+  --clinic-background: #f7f6fc;
+  --clinic-surface: #fff;
+  --clinic-container: #f1edf9;
+  --clinic-primary: #5843ad;
+  --clinic-primary-hover: #493395;
+  --clinic-primary-container: #eae2ff;
+  --clinic-on-primary-container: #30216a;
+  --clinic-ink: #201c30;
+  --clinic-muted: #625e72;
+  --clinic-outline: #e4e0ee;
+  --clinic-field-outline: #cdc8da;
+  --clinic-error: #a92438;
+  --clinic-radius: 1.25rem;
+  --clinic-shadow: 0 2px 4px #26184b08, 0 8px 24px #26184b09;
+  --clinic-width: 75rem;
+  --clinic-gutter: clamp(1rem, 4vw, 2.5rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--clinic-background);
+  color: var(--clinic-ink);
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, p { margin: 0; }
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+a { color: var(--clinic-primary); }
+img { max-width: 100%; }
+
+:focus-visible {
+  outline: 2px solid var(--clinic-primary);
+  outline-offset: 3px;
+}
+
+.clinic-page {
+  width: min(100%, var(--clinic-width));
+  margin-inline: auto;
+  padding: clamp(1.5rem, 4vw, 3rem) var(--clinic-gutter) 3rem;
+}
+
+.clinic-page-header { margin-bottom: 1.6rem; }
+.clinic-page-header h1 {
+  font-size: clamp(1.95rem, 4.5vw, 2.85rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -.043em;
+}
+.clinic-page-header p { margin-top: .55rem; color: var(--clinic-muted); }
+
+.clinic-card {
+  border: 1px solid var(--clinic-outline);
+  border-radius: var(--clinic-radius);
+  background: var(--clinic-surface);
+  box-shadow: var(--clinic-shadow);
+}
+
+.clinic-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-height: 2.65rem;
+  padding: .5rem 1.125rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--clinic-primary);
+  font-size: .875rem;
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms, box-shadow 150ms;
+}
+.clinic-button svg { width: 1.15rem; height: 1.15rem; flex: none; }
+.clinic-button:hover { background: var(--clinic-container); }
+.clinic-button-filled { color: #fff; background: var(--clinic-primary); }
+.clinic-button-filled:hover:not(:disabled) { background: var(--clinic-primary-hover); box-shadow: 0 2px 8px #5843ad39; }
+.clinic-button-tonal { color: var(--clinic-on-primary-container); background: var(--clinic-primary-container); }
+.clinic-button-tonal:hover:not(:disabled) { background: #dfd4fa; }
+.clinic-button-outlined { border-color: var(--clinic-field-outline); }
+.clinic-button-danger { color: var(--clinic-error); }
+.clinic-button-danger:hover { background: #fae7eb; }
+.clinic-button:disabled { background: var(--clinic-container); color: var(--clinic-muted); opacity: .65; cursor: not-allowed; }
+
+.clinic-mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  border-radius: 1rem;
+  color: white;
+  background: var(--clinic-primary);
+  box-shadow: 0 4px 9px #5843ad32;
+}
+.clinic-mark svg { width: 1.3rem; height: 1.3rem; }
+
+.clinic-field { min-width: 0; display: grid; align-content: start; gap: .375rem; }
+.clinic-field label { color: var(--clinic-ink); font-size: .85rem; font-weight: 650; }
+.clinic-control {
+  min-width: 0;
+  min-height: 2.8rem;
+  width: 100%;
+  border: 1px solid var(--clinic-field-outline);
+  border-radius: .7rem;
+  background: var(--clinic-surface);
+  color: var(--clinic-ink);
+  padding: .55rem .75rem;
+  font-size: .9rem;
+}
+.clinic-control::placeholder { color: var(--clinic-muted); }
+.clinic-control:focus { border-color: var(--clinic-primary); outline: 2px solid #765ad32b; outline-offset: 0; }
+.clinic-control:disabled { background: var(--clinic-container); color: var(--clinic-muted); cursor: not-allowed; }
+.clinic-control.is-invalid, .clinic-control.invalid-border { border-color: var(--clinic-error); }
+.clinic-field-error { color: var(--clinic-error); font-size: .8rem; }
+
+.clinic-empty { padding: clamp(1.5rem, 5vw, 3rem); text-align: center; color: var(--clinic-muted); }
+.clinic-empty h2, .clinic-empty h3 { color: var(--clinic-ink); }
+.clinic-empty p { margin-top: .45rem; }
+.clinic-empty .clinic-button { margin-top: 1rem; }
+
+.clinic-overlay {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: #20183084;
+}
+.clinic-dialog {
+  position: relative;
+  width: min(100%, 38rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  border: 1px solid var(--clinic-outline);
+  border-radius: 1.75rem;
+  background: var(--clinic-surface);
+  box-shadow: 0 12px 56px #2018303f;
+}
+.clinic-dialog-heading, .clinic-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 1rem clamp(1rem, 4vw, 1.6rem);
+  background: var(--clinic-background);
+}
+.clinic-dialog-heading { justify-content: space-between; border-bottom: 1px solid var(--clinic-outline); }
+.clinic-dialog-heading h2 { font-size: clamp(1.2rem, 4vw, 1.55rem); letter-spacing: -.027em; }
+.clinic-dialog-actions { flex-wrap: wrap; justify-content: flex-end; border-top: 1px solid var(--clinic-outline); }
+.clinic-close { min-height: 2.5rem; width: 2.5rem; padding: 0; font-size: 1.4rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .clinic-button { transition: none; }
+}

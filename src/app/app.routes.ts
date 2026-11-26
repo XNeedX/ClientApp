@@ -14,11 +14,14 @@ export const routes: Routes = [
     },
     {
         path: 'services',
+        canActivate: [authGuard],
+        data: { roles: ['Patient'] },
         loadComponent: () => import('./features/services/services-list/services-list.component').then(m => m.ServicesListComponent)
     },
     {
         path: 'onboarding',
         canActivate: [authGuard],
+        data: { roles: ['Patient'] },
         loadComponent: () => import('./features/patients/onboarding/onboarding').then(m => m.OnboardingComponent)
     },
     {
@@ -34,7 +37,9 @@ export const routes: Routes = [
         loadComponent: () => import('./features/doctors/doctor-details/doctor-details').then(m => m.DoctorDetailsComponent)
     },
     {
-    path: 'profile',
-    loadComponent: () => import('./features/patients/profiles/profile.component').then(m => m.ProfileComponent)
+        path: 'profile',
+        canActivate: [authGuard],
+        data: { roles: ['Patient'] },
+        loadComponent: () => import('./features/patients/profiles/profile.component').then(m => m.ProfileComponent)
     }
 ];

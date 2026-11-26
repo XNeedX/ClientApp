@@ -1,14 +1,14 @@
-import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Subject, of } from 'rxjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, finalize, switchMap, takeUntil, timeout } from 'rxjs/operators';
 import { RouterModule } from '@angular/router';
 import { DoctorService } from '../services/doctor.service';
 import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
 import { SpecializationService } from '../../../core/services/specialization.service'; 
 import { OfficeService } from '../../../core/services/office.service';
-import { environment } from '../../../../environments/environment';
+import { documentImageUrl } from '../../../core/models/document-image';
 
 @Component({
   selector: 'app-doctor-list',
@@ -31,9 +31,10 @@ export class DoctorList implements OnInit, OnDestroy {
   private readonly FALLBACK_IMAGE = 'assets/images/default-doctor.png';
 
   filterForm!: FormGroup;
-  doctors: DoctorCardDto[] = [];
-  totalCount = 0;
-  isLoading = false;
+  readonly doctors = signal<DoctorCardDto[]>([]);
+  readonly totalCount = signal(0);
+  readonly isLoading = signal(false);
+  readonly loadFailed = signal(false);
 
   allSpecializations: string[] = [];
   filteredSpecializations: string[] = [];
@@ -51,76 +52,31 @@ export class DoctorList implements OnInit, OnDestroy {
     this.loadSpecializations();
     this.loadOffices();
 
-    this.filterForm.get('specialization')?.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(spec => {
-      if (spec && this.doctors.length > 0) {
-        const specOffices = this.doctors
-          .filter(d => d.specialization === spec)
-          .map(d => d.officeAddress);
-        
-        const uniqueOffices = [...new Set(specOffices)];
-        
-        this.filteredOffices = this.allOffices.filter(o => 
-          uniqueOffices.includes(o.fullAddress)
-        );
-      } else {
-        this.filteredOffices = [...this.allOffices];
-      }
-    });
-
-    this.filterForm.get('specialization')?.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(spec => {
-      if (spec && this.doctors.length > 0) {
-        const specOffices = this.doctors
-          .filter(d => d.specialization === spec)
-          .map(d => d.officeAddress);
-        
-        const uniqueOffices = [...new Set(specOffices)];
-        
-        this.filteredOffices = this.allOffices.filter(o => 
-          uniqueOffices.includes(o.address || o)
-        );
-      } else {
-        this.filteredOffices = [...this.allOffices];
-      }
-    });
-
     this.searchSubject.pipe(
-      takeUntil(this.destroy$),
-      tap(() => {
-        this.isLoading = true;
-        this.doctors = [];
-        this.totalCount = 0;
-        this.cdr.detectChanges(); 
+      switchMap((filter) => {
+        this.isLoading.set(true);
+        this.loadFailed.set(false);
+        return this.doctorService.getDoctors(filter).pipe(
+          timeout(12_000),
+          catchError(() => of(null)),
+          finalize(() => this.isLoading.set(false)),
+        );
       }),
-      switchMap((filter) => 
-        this.doctorService.getDoctors(filter).pipe(
-          catchError((err) => {
-            console.error('Error loading doctors list:', err);
-            return of(null);
-          })
-        )
-      )
+      takeUntil(this.destroy$),
     ).subscribe((response) => {
-      if (response && response.isSuccess && response.data) {
-        this.doctors = response.data.data;
-        this.totalCount = response.data.totalCount;
+      if (response?.isSuccess && response.data) {
+        this.doctors.set(response.data.data);
+        this.totalCount.set(response.data.totalCount);
+      } else {
+        this.loadFailed.set(true);
       }
-      this.isLoading = false;
-      this.cdr.detectChanges(); 
     });
 
     this.onSearch();
   }
 
-getPhotoUrl(photoPath?: string): string {
-    if (!photoPath || photoPath === 'string') {
-      return this.FALLBACK_IMAGE;
-    }
-    
-    return photoPath;
+  getPhotoUrl(photoPath?: string): string {
+    return documentImageUrl(photoPath) ?? this.FALLBACK_IMAGE;
   }
 
   ngOnDestroy() {
@@ -135,7 +91,7 @@ getPhotoUrl(photoPath?: string): string {
           this.allSpecializations = response.data.items.map((s: any) => s.name);
           this.filteredSpecializations = [...this.allSpecializations];
           this.filterForm.get('specialization')?.updateValueAndValidity();
-          this.cdr.detectChanges(); 
+          this.cdr.markForCheck();
         }
       },
       error: (err) => console.error('Error fetching specializations:', err)
@@ -148,11 +104,11 @@ getPhotoUrl(photoPath?: string): string {
         if (response && response.data && response.data.items) {
           this.allOffices = response.data.items;
           this.filteredOffices = [...this.allOffices];
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         } else if (response && response.items) {
           this.allOffices = response.items;
           this.filteredOffices = [...this.allOffices];
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         }
       },
       error: (err) => console.error('Error fetching offices:', err)
@@ -190,10 +146,6 @@ getPhotoUrl(photoPath?: string): string {
     };
 
     this.searchSubject.next(filter);
-  }
-
-  openMap() {
-    console.log('Opening map with offices...');
   }
 
   onImageError(event: Event) {

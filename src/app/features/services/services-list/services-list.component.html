@@ -1,67 +1,51 @@
-<div class="services-container">
-  <h2>Clinic Services</h2>
+<section class="clinic-page services-container" aria-labelledby="services-title">
+  <header class="clinic-page-header">
+    <h1 id="services-title">Clinic services</h1>
+    <p>Explore consultations, diagnostics and laboratory tests.</p>
+  </header>
 
-  <div class="tabs">
-    <button 
-      [class.active]="activeTab === CategoryEnum.Consultations" 
-      (click)="switchTab(CategoryEnum.Consultations)">
-      Consultations
-    </button>
-    <button 
-      [class.active]="activeTab === CategoryEnum.Diagnostics" 
-      (click)="switchTab(CategoryEnum.Diagnostics)">
-      Diagnostics
-    </button>
-    <button 
-      [class.active]="activeTab === CategoryEnum.Analyses" 
-      (click)="switchTab(CategoryEnum.Analyses)">
-      Analyses
-    </button>
+  <div class="service-tabs" role="group" aria-label="Service category">
+    @for (category of [CategoryEnum.Consultations, CategoryEnum.Diagnostics, CategoryEnum.Analyses]; track category) {
+      <button type="button" class="clinic-button" [class.active]="activeTab() === category"
+        [attr.aria-pressed]="activeTab() === category" (click)="switchTab(category)">
+        {{ category }}
+      </button>
+    }
   </div>
 
   <div class="tab-content">
-    @if (activeTab === CategoryEnum.Consultations) {
-      <div class="consultations-list">
-        @for (spec of consultations | keyvalue; track spec.key) {
-          <div class="specialization-group">
-            <h3>{{ spec.key }}</h3>
-            <ul>
-              @for (service of spec.value; track service.id) {
-                <li>
-                  <span class="service-name">{{ service.name }}</span>
-                  <span class="service-price">{{ service.price | currency }}</span>
-                </li>
-              }
-            </ul>
-          </div>
+    @if (current(); as view) {
+      @if (view.status === 'loading') {
+        <p class="clinic-card clinic-empty" role="status">Loading services...</p>
+      } @else if (view.status === 'error') {
+        <div class="clinic-card clinic-empty" role="alert">
+          <p>Could not load services.</p>
+          <button type="button" class="clinic-button clinic-button-tonal" (click)="retry()">Try again</button>
+        </div>
+      } @else if (view.status === 'loaded') {
+        @if (activeTab() === CategoryEnum.Consultations) {
+          @for (group of view.data.specializations; track group.id) {
+            <section class="clinic-card specialization-group">
+              <h2>{{ group.name }}</h2>
+              <ul class="service-list">
+                @for (service of group.services; track service.id) {
+                  <li><span class="service-name">{{ service.name }}</span><span class="service-price">{{ service.price | currency }}</span></li>
+                }
+              </ul>
+            </section>
+          } @empty {
+            <p class="clinic-card clinic-empty">No consultations listed.</p>
+          }
+        } @else if (view.data.services.length) {
+          <ul class="clinic-card service-list">
+            @for (service of view.data.services; track service.id) {
+              <li><span class="service-name">{{ service.name }}</span><span class="service-price">{{ service.price | currency }}</span></li>
+            }
+          </ul>
+        } @else {
+          <p class="clinic-card clinic-empty">No services listed for this category.</p>
         }
-      </div>
-    }
-
-    @if (activeTab === CategoryEnum.Diagnostics) {
-      <div class="diagnostics-list">
-        <ul>
-          @for (service of diagnostics; track service.id) {
-            <li>
-              <span class="service-name">{{ service.name }}</span>
-              <span class="service-price">{{ service.price | currency }}</span>
-            </li>
-          }
-        </ul>
-      </div>
-    }
-
-    @if (activeTab === CategoryEnum.Analyses) {
-      <div class="analyses-list">
-        <ul>
-          @for (service of analyses; track service.id) {
-            <li>
-              <span class="service-name">{{ service.name }}</span>
-              <span class="service-price">{{ service.price | currency }}</span>
-            </li>
-          }
-        </ul>
-      </div>
+      }
     }
   </div>
-</div>
+</section>

@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
+import { environment } from '../../../../environments/environment';
 
 describe('SignUpModalComponent', () => {
   let component: SignUpModalComponent;
@@ -92,7 +93,7 @@ describe('SignUpModalComponent', () => {
     it('AC-8: клик по кнопке "X" должен вызывать событие close', () => {
       vi.spyOn(component.close, 'emit'); 
       
-      const closeButton = fixture.debugElement.query(By.css('.close-btn')).nativeElement;
+      const closeButton = fixture.debugElement.query(By.css('[aria-label="Close sign-up form"]')).nativeElement;
       closeButton.click();
 
       expect(component.close.emit).toHaveBeenCalled();
@@ -118,7 +119,7 @@ describe('SignUpModalComponent', () => {
 
       component.onSubmit();
 
-      const req = httpTestingController.expectOne('https://localhost:5001/auth/signup');
+      const req = httpTestingController.expectOne(environment.gatewayUrl + '/auth/signup');
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({
         email: 'test@test.com',

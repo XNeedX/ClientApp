@@ -24,7 +24,11 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  login() {
-    this.keycloak.login();
+  login(): void {
+    void this.keycloak.login({ redirectUri: window.location.origin + '/doctors?book=1' });
+  }
+
+  register(): void {
+    void this.keycloak.register({ redirectUri: window.location.origin + '/onboarding' });
   }
 }

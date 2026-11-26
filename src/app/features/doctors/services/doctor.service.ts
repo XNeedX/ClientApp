@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../../core/models/api-response.model';
 import { PagedResult } from '../../../core/models/paged-result.model';
-import { DoctorCardDto, DoctorFilterDto } from '../models/doctor.model';
+import { DoctorCardDto, DoctorDetailsDto, DoctorFilterDto } from '../models/doctor.model';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +32,7 @@ export class DoctorService {
     return this.http.get<ApiResponse<PagedResult<DoctorCardDto>>>(this.baseUrl, { params });
   }
 
-  getDoctorById(id: string): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${id}`);
+  getDoctorById(id: string): Observable<ApiResponse<Omit<DoctorDetailsDto, 'id' | 'services'>>> {
+    return this.http.get<ApiResponse<Omit<DoctorDetailsDto, 'id' | 'services'>>>(`${this.baseUrl}/${id}`);
   }
 }

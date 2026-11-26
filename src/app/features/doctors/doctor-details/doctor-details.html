@@ -1,58 +1,62 @@
-<div class="doctor-page">
+<section class="clinic-page doctor-page">
+  <a routerLink="/doctors" class="clinic-button back-action">&larr; Back to doctors</a>
+
   @if (isLoading) {
-    <p>Loading doctor information...</p>
+    <p class="clinic-card clinic-empty" role="status">Loading doctor information...</p>
   } @else if (doctor) {
-    <button class="btn-back" (click)="goBack()">
-      &larr; Back to Doctors
-    </button>
-
-    <div class="doctor-profile-card">
-      <div class="header-section">
-        <img 
-          [src]="getPhotoUrl(doctor.photoPath)" 
+    <article class="clinic-card doctor-profile-card">
+      <header class="doctor-profile-heading">
+        <img
+          class="doctor-photo"
+          [src]="getPhotoUrl(doctor.photoPath)"
           (error)="onImageError($event)"
-          alt="Doctor Photo" 
-          class="doctor-photo">
-        
-        <div class="title-section">
-          <h2>{{ doctor.lastName }} {{ doctor.firstName }} {{ doctor.middleName }}</h2>
-          <h4 class="specialization">{{ doctor.specialization }}</h4>
+          alt=""
+          width="100"
+          height="100"
+        >
+        <div>
+          <h1>{{ doctor.lastName }} {{ doctor.firstName }} {{ doctor.middleName }}</h1>
+          <p class="specialization">{{ doctor.specialization }}</p>
         </div>
-      </div>
+      </header>
 
-      <div class="info-grid">
-        <div class="info-item">
-          <strong>Office Address:</strong>
-          <span>{{ doctor.officeAddress }}</span>
-        </div>
+      <dl class="doctor-facts">
+        <div><dt>Office address</dt><dd>{{ doctor.officeAddress }}</dd></div>
+        <div><dt>Experience</dt><dd>{{ getExperience(doctor.careerStartYear) }} years</dd></div>
+      </dl>
 
-        <div class="info-item">
-          <strong>Experience:</strong>
-          <span>{{ getExperience(doctor.careerStartYear) }} years</span>
-        </div>
-      </div>
-
-      <div class="services-section">
-      <h3>Services according to specialization</h3>
-      <ul>
-        @for (service of doctor.services || []; track service?.id) {
-          <li>{{ service.name }}</li>
-        } @empty {
-          <li>No services listed.</li>
+      <section class="doctor-services">
+        <h2>Services in this specialization</h2>
+        @if (isLoadingServices) {
+          <p role="status">Loading services...</p>
+        } @else if (doctorServicesFailed) {
+          <p role="alert">Could not load services for this doctor.</p>
+        } @else if (doctor.services?.length) {
+          <ul>
+            @for (service of doctor.services; track service.id) {
+              <li>{{ service.name }}</li>
+            }
+          </ul>
+        } @else {
+          <p>No services listed.</p>
         }
-      </ul>
-    </div>
+      </section>
 
-      <button class="btn btn-success make-appointment-btn" (click)="openAppointmentModal()">
+      <button type="button" class="clinic-button clinic-button-filled" (click)="openAppointmentModal()">
         Make an appointment with the doctor
       </button>
+    </article>
+  } @else {
+    <div class="clinic-card clinic-empty">
+      <h1>Doctor unavailable</h1>
+      <p>Return to the directory to choose another specialist.</p>
     </div>
   }
-</div>
+</section>
 
 @if (isAppointmentModalOpen) {
-  <app-appointment-modal 
+  <app-appointment-modal
     [preselectedDoctorId]="doctor?.id"
-    (close)="isAppointmentModalOpen = false">
-  </app-appointment-modal>
+    (close)="isAppointmentModalOpen = false"
+  />
 }

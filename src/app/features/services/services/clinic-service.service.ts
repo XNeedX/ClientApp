@@ -1,39 +1,40 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ClinicService, Category } from '../models/service.model';
+import { ApiResponse } from '../../../core/models/api-response.model';
+import { Category, ServiceCatalog } from '../models/service.model';
 
-export interface ServiceApiResponse {
-  data: {
-    specializations: any[];
-    services: ClinicService[];
-  };
-  isSuccess: boolean;
-  message: string | null;
-  errors: any[];
-}
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ClinicServiceService {
-  private http = inject(HttpClient);
-  
-  private apiUrl = `${environment.gatewayUrl ?? 'http://localhost:5137'}/services`; 
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.gatewayUrl + '/services';
 
-  getServicesByCategory(category: Category): Observable<ClinicService[]> {
-    return this.http.get<ServiceApiResponse>(`${this.apiUrl}/Service/by-category/${category}`).pipe(
-      map(response => {
-        if (response.isSuccess && response.data && Array.isArray(response.data.services)) {
-          return response.data.services.filter(
-            service => service.status === 0 || service.status === 'Active'
-          );
+  getServicesByCategory(category: Category): Observable<ServiceCatalog> {
+    return this.http.get<ApiResponse<ServiceCatalog>>(
+      this.apiUrl + '/Service/by-category/' + category
+    ).pipe(
+      map((response) => {
+        if (!response.isSuccess || !response.data) {
+          throw new Error('Could not load the service catalog.');
         }
-        
-        return [];
-      })
+
+        const { specializations, services } = response.data;
+        return {
+          specializations: specializations
+            .filter((group) => this.isActive(group.status))
+            .map((group) => ({
+              ...group,
+              services: group.services.filter((service) => this.isActive(service.status)),
+            }))
+            .filter((group) => group.services.length > 0),
+          services: services.filter((service) => this.isActive(service.status)),
+        };
+      }),
     );
+  }
+
+  private isActive(status: string | number): boolean {
+    return status === 0 || status === 'Active';
   }
 }

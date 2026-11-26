@@ -1,80 +1,105 @@
-<div class="profile-page">
-  @if (isLoading) {
-    <div class="loading">Loading profile...</div>
-  } @else if (!profileData) {
-    <div class="error-message">
+<section class="clinic-page profile-page" aria-labelledby="profile-title">
+  <header class="clinic-page-header">
+    <h1 id="profile-title">My profile</h1>
+    <p>Your personal information, visits and appointment results.</p>
+  </header>
+
+  @if (state() === 'loading') {
+    <div class="clinic-card clinic-empty" role="status">Loading profile...</div>
+  } @else if (state() === 'missing') {
+    <div class="clinic-card clinic-empty">
       <h2>Profile not found</h2>
-      <p>Please go to the Onboarding page to complete your profile.</p>
+      <p>Add your personal information to book visits.</p>
+      <a routerLink="/onboarding" class="clinic-button clinic-button-filled">Set up profile</a>
     </div>
-  } @else {
-    <div class="profile-card">
-      
-      <div class="tabs-header">
-        <button 
-          class="tab-btn" 
-          [class.active]="activeTab === 'personal'" 
-          (click)="switchTab('personal')">
-          Personal information
-        </button>
-        <button 
-          class="tab-btn" 
-          [class.active]="activeTab === 'appointments'" 
-          (click)="switchTab('appointments')">
-          Appointment results
-        </button>
+  } @else if (state() === 'error') {
+    <div class="clinic-card clinic-empty" role="alert">
+      <p>Could not load your profile.</p>
+      <button type="button" class="clinic-button clinic-button-tonal" (click)="loadProfile()">Try again</button>
+    </div>
+  } @else if (profile(); as details) {
+    <div class="clinic-card profile-card">
+      <div class="tabs-header" role="group" aria-label="Profile sections">
+        <button type="button" class="clinic-button" [class.active]="activeTab() === 'personal'"
+          [attr.aria-pressed]="activeTab() === 'personal'" (click)="switchTab('personal')">Personal information</button>
+        <button type="button" class="clinic-button" [class.active]="activeTab() === 'appointments'"
+          [attr.aria-pressed]="activeTab() === 'appointments'" (click)="switchTab('appointments')">Appointment results</button>
       </div>
 
       <div class="tab-body">
-        
-        @if (activeTab === 'personal') {
+        @if (activeTab() === 'personal') {
           <div class="personal-tab-content">
-            
-           <div class="photo-section">
-            <img 
-              [src]="getPhotoUrl(profileData.photoPath)" 
-              (error)="onImageError($event)"
-              alt="Profile Photo" 
-              class="avatar">
-          </div>
-            
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="label">First name</span>
-                <span class="value">{{ profileData.firstName }}</span>
-              </div>
-              
-              <div class="info-item">
-                <span class="label">Last name</span>
-                <span class="value">{{ profileData.lastName }}</span>
-              </div>
-
-              <div class="info-item">
-                <span class="label">Middle name</span>
-                <span class="value">{{ profileData.middleName || '-' }}</span>
-              </div>
-
-              <div class="info-item">
-                <span class="label">Phone number</span>
-                <span class="value">{{ profileData.phoneNumber }}</span>
-              </div>
-
-              <div class="info-item">
-                <span class="label">Date of birth</span>
-                <span class="value">{{ profileData.dateOfBirth | date:'dd.MM.yyyy' }}</span>
-              </div>
+            <div class="photo-section">
+              @if (getPhotoUrl(details.photoPath); as photoUrl) {
+                <img [src]="photoUrl" alt="" class="avatar">
+              } @else {
+                <span class="avatar avatar-initials" aria-hidden="true">
+                  {{ details.firstName.charAt(0) }}{{ details.lastName.charAt(0) }}
+                </span>
+              }
             </div>
-
+            <div class="info-grid">
+              <div class="info-item"><span class="label">First name</span><span class="value">{{ details.firstName }}</span></div>
+              <div class="info-item"><span class="label">Last name</span><span class="value">{{ details.lastName }}</span></div>
+              <div class="info-item"><span class="label">Middle name</span><span class="value">{{ details.middleName || '—' }}</span></div>
+              <div class="info-item"><span class="label">Phone number</span><span class="value">{{ details.phoneNumber }}</span></div>
+              <div class="info-item"><span class="label">Date of birth</span><span class="value">{{ details.dateOfBirth | date:'dd.MM.yyyy':'UTC' }}</span></div>
+            </div>
           </div>
-        }
-
-        @if (activeTab === 'appointments') {
-          <div class="appointments-tab-content">
-            <h3>Your Appointment Results</h3>
-            <p class="text-muted">No appointments found yet.</p>
+        } @else {
+          <div class="history-header">
+            <h2>Your appointments</h2>
+            <button type="button" class="clinic-button clinic-button-outlined" (click)="loadHistory()" [disabled]="historyStatus() === 'loading'">Refresh</button>
           </div>
+
+          @if (historyStatus() === 'loading') {
+            <p class="text-muted" role="status">Loading appointments...</p>
+          } @else if (historyStatus() === 'error') {
+            <p class="clinic-field-error" role="alert">Could not load appointments. Try refreshing.</p>
+          } @else {
+            <div class="appointment-history">
+              @for (visit of visits(); track visit.appointmentId) {
+                <article class="info-item history-item">
+                  <div>
+                    <h3>{{ visit.serviceName }}</h3>
+                    <p>{{ visit.doctorFullName }}</p>
+                    <p class="text-muted">{{ visit.startTime | date:'dd.MM.yyyy, HH:mm':'+0300' }} – {{ visit.endTime | date:'HH:mm':'+0300' }} (Moscow)</p>
+                  </div>
+                  @if (visit.resultId) {
+                    <button type="button" class="clinic-button clinic-button-tonal" (click)="showResult(visit)">View result</button>
+                  } @else {
+                    <span class="text-muted">No result yet</span>
+                  }
+                </article>
+              } @empty {
+                <p class="text-muted">No appointments found yet.</p>
+              }
+            </div>
+          }
         }
       </div>
-
     </div>
   }
-</div>
+</section>
+
+@if (openResultId()) {
+  <div class="clinic-overlay">
+    <section class="clinic-dialog" role="dialog" aria-modal="true" aria-labelledby="patient-result-title">
+      <div class="clinic-dialog-heading">
+        <h2 id="patient-result-title">Appointment result</h2>
+        <button type="button" class="clinic-button clinic-close" aria-label="Close result" (click)="openResultId.set(null)">×</button>
+      </div>
+      @if (resultStatus() === 'loading') {
+        <p class="clinic-empty" role="status">Loading result...</p>
+      } @else if (resultStatus() === 'error') {
+        <p class="clinic-empty" role="alert">Could not load this result. Please close and try again.</p>
+      } @else if (result(); as report) {
+        <dl class="result-fields">
+          <div><dt>Complaints</dt><dd>{{ report.complaints || '—' }}</dd></div>
+          <div><dt>Conclusion</dt><dd>{{ report.conclusion || '—' }}</dd></div>
+          <div><dt>Recommendations</dt><dd>{{ report.recommendations || '—' }}</dd></div>
+        </dl>
+      }
+    </section>
+  </div>
+}

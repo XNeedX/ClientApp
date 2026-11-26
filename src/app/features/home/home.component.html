@@ -1,15 +1,27 @@
-<div class="home-container">
-  <div class="hero-section">
-    <h1>Welcome to InnoClinic</h1>
-    <p>A modern approach to your health. Book appointments with the best specialists in just a few clicks.</p>
-    
-    <div class="action-buttons">
-      @if (isLoggedIn) {
-        <a routerLink="/doctors" class="btn btn-large btn-primary">Find a Doctor</a>
-        <a routerLink="/profile" class="btn btn-large btn-secondary">Go to Profile</a>
-      } @else {
-        <button (click)="login()" class="btn btn-large btn-primary">Log in to book</button>
+<section class="clinic-page welcome-page" aria-labelledby="welcome-title">
+  <div class="welcome-card">
+    <div class="welcome-content">
+      <h1 id="welcome-title">Your next visit <span>starts here.</span></h1>
+      <p>Find a specialist, browse clinic services and book an appointment at InnoClinic.</p>
+      <div class="welcome-actions">
+        @if (isLoggedIn) {
+          <a routerLink="/doctors" class="clinic-button clinic-button-filled">Find a doctor</a>
+        } @else {
+          <button type="button" (click)="login()" class="clinic-button clinic-button-filled">Log in to book</button>
+        }
+        <a routerLink="/services" class="clinic-button clinic-button-outlined">Browse services</a>
+      </div>
+      @if (!isLoggedIn) {
+        <button type="button" class="clinic-button welcome-register" (click)="register()">Create an account</button>
       }
     </div>
+    <img
+      class="welcome-photo"
+      src="assets/images/clinic-consultation.jpg"
+      width="1448"
+      height="1086"
+      alt="A doctor speaking with a patient in a consultation room"
+      fetchpriority="high"
+    >
   </div>
-</div>
+</section>

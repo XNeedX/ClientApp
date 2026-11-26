@@ -1,10 +1,11 @@
 export interface CreatePatientDto {
-  photoPath?: string;
+  photoPath: string | null;
   firstName: string;
   lastName: string;
-  middleName?: string;
+  middleName: string | null;
   phoneNumber: string;
-  dateOfBirth: string; 
+  email: string;
+  dateOfBirth: string;
   isEmailVerified: boolean;
   accountId: string;
 }
@@ -19,7 +20,7 @@ export interface PatientProfileDto {
 }
 
 export interface ExistingProfileDto {
-  id: string; 
+  id: string;
   firstName: string;
   lastName: string;
   middleName?: string;
@@ -29,5 +30,5 @@ export interface ExistingProfileDto {
 export interface PatientMatchResultDto {
   isMatchFound: boolean;
   message: string;
-  existingProfile?: ExistingProfileDto;
+  existingProfile?: ExistingProfileDto | null;
 }

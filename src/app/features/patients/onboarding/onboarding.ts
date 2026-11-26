@@ -1,142 +1,172 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PatientService } from '../services/patient.service';
-import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
+import { firstValueFrom } from 'rxjs';
+
+import { ApiResponse } from '../../../core/models/api-response.model';
+import { CreatePatientDto, ExistingProfileDto } from '../models/patient.model';
+import { PatientService } from '../services/patient.service';
 
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink],
   templateUrl: './onboarding.html',
-  styleUrls: ['./onboarding.css']
+  styleUrl: './onboarding.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OnboardingComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private patientService = inject(PatientService);
-  private router = inject(Router);
-  private keycloak = inject(KeycloakService);
+  private readonly patientService = inject(PatientService);
+  private readonly router = inject(Router);
+  private readonly keycloak = inject(KeycloakService);
 
-  profileForm!: FormGroup;
-  selectedFile: File | null = null;
-  
-  showMatchModal = false;
-  matchedProfile: any = null;
-  
-  private pendingProfileData: any = null;
-  private accountId: string = '';
-  private email: string = '';
+  protected readonly maxBirthDate = new Date().toISOString().slice(0, 10);
+  protected readonly profileForm = inject(FormBuilder).nonNullable.group({
+    firstName: ['', [Validators.required, Validators.pattern(/\S/)]],
+    lastName: ['', [Validators.required, Validators.pattern(/\S/)]],
+    middleName: [''],
+    phoneNumber: ['', [Validators.required, Validators.pattern(/^[1-9]\d{1,14}$/)]],
+    dateOfBirth: ['', [Validators.required, (control: AbstractControl<string>) =>
+      control.value > this.maxBirthDate ? { futureDate: true } : null]],
+  });
 
-  async ngOnInit() {
-    this.initForm();
-    
-    const isLoggedIn = await this.keycloak.isLoggedIn();
-    if (isLoggedIn) {
-      const userProfile = await this.keycloak.loadUserProfile();
-      this.accountId = userProfile.id || '';
-      this.email = userProfile.email || '';
+  protected readonly state = signal<'loading' | 'ready' | 'existing' | 'error'>('loading');
+  protected readonly isSaving = signal(false);
+  protected readonly matchedProfile = signal<ExistingProfileDto | null>(null);
+  protected readonly saveError = signal<string | null>(null);
+  protected readonly photoError = signal<string | null>(null);
+
+  private identity: Pick<CreatePatientDto, 'accountId' | 'email' | 'isEmailVerified'> | null = null;
+  private pendingProfile: CreatePatientDto | null = null;
+  private selectedFile: File | null = null;
+  private uploadedPhoto: { file: File; id: string } | null = null;
+
+  ngOnInit(): void {
+    void this.load();
+  }
+
+  protected async load(): Promise<void> {
+    this.state.set('loading');
+    try {
+      const { id, email, emailVerified } = await this.keycloak.loadUserProfile();
+      if (!id || !email) throw new Error('Patient account is unavailable.');
+      this.identity = { accountId: id, email, isEmailVerified: emailVerified === true };
+      const response = await firstValueFrom(this.patientService.getProfileByAccountId(id));
+      this.ensureSuccess(response);
+      this.state.set('existing');
+    } catch (error: unknown) {
+      this.state.set(error instanceof HttpErrorResponse && error.status === 404 && this.identity ? 'ready' : 'error');
     }
   }
 
-  initForm() {
-    this.profileForm = this.fb.group({
-      photo: [null],
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      middleName: [''],
-      phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
-      dateOfBirth: ['', Validators.required]
-    });
-  }
-
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
+  protected onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (file && !file.type.startsWith('image/')) {
+      this.selectedFile = null;
+      input.value = '';
+      this.photoError.set('Choose an image file.');
+      return;
     }
+    this.selectedFile = file;
+    this.photoError.set(null);
   }
 
-  isInvalidAndTouched(controlName: string): boolean {
+  protected isInvalidAndTouched(controlName: string): boolean {
     const control = this.profileForm.get(controlName);
-    return !!(control?.invalid && (control?.touched || control?.dirty));
+    return Boolean(control?.invalid && (control.touched || control.dirty));
   }
 
-onSubmit() {
-    if (this.profileForm.invalid) {
+  protected async onSubmit(): Promise<void> {
+    if (this.profileForm.invalid || this.isSaving() || !this.identity || this.state() !== 'ready' || this.photoError()) {
       this.profileForm.markAllAsTouched();
       return;
     }
 
-    if (this.selectedFile) {
-      this.patientService.uploadPhoto(this.selectedFile).subscribe({
-        next: (response) => {
-          const fileIdGuid = response.data || ''; 
-          this.submitProfileData(fileIdGuid);
-        },
-        error: () => {
-          alert('Error uploading photo. Please try again.');
-        }
-      });
-    } else {
-      this.submitProfileData(''); 
+    const identity = this.identity;
+    await this.save(async () => {
+      const values = this.profileForm.getRawValue();
+      const photoPath = await this.uploadSelectedPhoto();
+      const request: CreatePatientDto = {
+        ...identity,
+        photoPath,
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        middleName: values.middleName.trim() || null,
+        phoneNumber: '+' + values.phoneNumber,
+        dateOfBirth: values.dateOfBirth + 'T00:00:00Z',
+      };
+
+      const response = await firstValueFrom(this.patientService.confirmProfile(request));
+      this.ensureSuccess(response);
+      if (response.data?.isMatchFound) {
+        if (!response.data.existingProfile) throw new Error('Could not read the matching profile.');
+        this.pendingProfile = request;
+        this.matchedProfile.set(response.data.existingProfile);
+        return;
+      }
+      await this.showProfile();
+    });
+  }
+
+  protected async confirmMatch(): Promise<void> {
+    const profile = this.matchedProfile();
+    const identity = this.identity;
+    if (!profile || !identity || this.isSaving()) return;
+
+    await this.save(async () => {
+      this.ensureSuccess(await firstValueFrom(this.patientService.linkProfile(profile.id, identity.accountId)));
+      await this.showProfile();
+    });
+  }
+
+  protected async rejectMatch(): Promise<void> {
+    const profile = this.pendingProfile;
+    if (!profile || this.isSaving()) return;
+
+    await this.save(async () => {
+      this.ensureSuccess(await firstValueFrom(this.patientService.forceCreateProfile(profile)));
+      await this.showProfile();
+    });
+  }
+
+  private async uploadSelectedPhoto(): Promise<string | null> {
+    if (!this.selectedFile) return null;
+    if (this.uploadedPhoto?.file === this.selectedFile) return this.uploadedPhoto.id;
+
+    const file = this.selectedFile;
+    const response = await firstValueFrom(this.patientService.uploadPhoto(file));
+    this.ensureSuccess(response);
+    if (!response.data) throw new Error('Could not upload the photo.');
+    this.uploadedPhoto = { file, id: response.data };
+    return response.data;
+  }
+
+  private async showProfile(): Promise<void> {
+    this.matchedProfile.set(null);
+    this.state.set('existing');
+    await this.router.navigate(['/profile']);
+  }
+
+  private async save(action: () => Promise<void>): Promise<void> {
+    this.isSaving.set(true);
+    this.saveError.set(null);
+    try {
+      await action();
+    } catch (error: unknown) {
+      const message: unknown = error instanceof HttpErrorResponse
+        ? error.error?.errors?.[0] ?? error.error?.message
+        : error instanceof Error ? error.message : null;
+      this.saveError.set(typeof message === 'string' && message.trim() ? message : 'Could not save the profile.');
+    } finally {
+      this.isSaving.set(false);
     }
   }
 
-  private submitProfileData(fileIdGuid: string) {
-    this.pendingProfileData = {
-      ...this.profileForm.value,
-      accountId: this.accountId,
-      email: this.email,
-      phoneNumber: '+' + this.profileForm.value.phoneNumber,
-      dateOfBirth: new Date(this.profileForm.value.dateOfBirth).toISOString(),
-      photo: fileIdGuid 
-    };
-
-
-    this.patientService.confirmProfile(this.pendingProfileData).subscribe({
-      next: (response: any) => {
-        if (response.data && response.data.isMatchFound && response.data.profile) {
-          this.matchedProfile = response.data.profile;
-          this.showMatchModal = true;
-        } else {
-          alert('Profile successfully created!');
-          this.router.navigate(['/']);
-        }
-      },
-      error: (err: HttpErrorResponse) => {
-        if (err.status === 409 && err.error?.data?.profile) {
-          this.matchedProfile = err.error.data.profile;
-          this.showMatchModal = true;
-        } else {
-          alert('An error occurred during profile creation.');
-        }
-      }
-    });
-  }
-
-  confirmMatch() {
-    if (!this.matchedProfile?.id || !this.accountId) return;
-
-    this.patientService.linkProfile(this.matchedProfile.id, this.accountId).subscribe({
-      next: () => {
-        this.showMatchModal = false;
-        alert('Profile successfully linked!');
-        this.router.navigate(['/']);
-      },
-      error: (err: HttpErrorResponse) => alert('Error linking profile.')
-    });
-  }
-
-  rejectMatch() {
-    this.patientService.forceCreateProfile(this.pendingProfileData).subscribe({
-      next: () => {
-        this.showMatchModal = false;
-        alert('New profile successfully created!');
-        this.router.navigate(['/']);
-      },
-      error: (err: HttpErrorResponse) => alert('Error creating new profile.')
-    });
+  private ensureSuccess(response: ApiResponse<unknown>): void {
+    if (!response.isSuccess) throw new Error(response.errors?.[0] || response.message || 'Could not save the profile.');
   }
 }

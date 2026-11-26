@@ -1,48 +1,21 @@
-.services-container {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.tabs {
+.services-container { max-width: 65rem; }
+.service-tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 10px;
+  gap: .35rem;
+  overflow-x: auto;
+  padding: .3rem;
+  margin-bottom: 1rem;
+  border-radius: 1.25rem;
+  background: var(--clinic-container);
+  scrollbar-width: thin;
 }
-
-.tabs button {
-  padding: 10px 20px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  color: #666;
-  border-radius: 4px;
-}
-
-.tabs button.active {
-  color: #0056b3;
-  background-color: #e9ecef;
-}
-
-.tab-content ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.tab-content li {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-}
-
-.specialization-group h3 {
-  color: #333;
-  margin-top: 20px;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 5px;
-}
+.service-tabs button { flex: 1 0 auto; }
+.service-tabs button:hover { background: var(--clinic-primary-container); }
+.service-tabs button.active { background: var(--clinic-surface); color: var(--clinic-on-primary-container); box-shadow: var(--clinic-shadow); }
+.tab-content { display: grid; gap: 1rem; }
+.service-list { list-style: none; padding: 0; margin: 0; }
+.specialization-group h2 { padding: 1rem 1.25rem .85rem; font-size: 1.05rem; border-bottom: 1px solid var(--clinic-outline); }
+.service-list li { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; padding: .9rem 1.25rem; }
+.service-list li + li { border-top: 1px solid var(--clinic-outline); }
+.service-name { font-weight: 600; }
+.service-price { flex: none; color: var(--clinic-primary); font-weight: 650; font-variant-numeric: tabular-nums; }

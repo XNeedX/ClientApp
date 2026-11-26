@@ -1,27 +1,39 @@
-<nav class="navbar">
-  <div class="navbar-brand">
-    <a routerLink="/home" class="logo">InnoClinic</a>
-  </div>
-  
-  <div class="navbar-menu">
-    <button (click)="isAppointmentModalOpen = true" class="btn btn-success" style="margin-right: 15px;">
-      Make an appointment
-    </button>
-    <a routerLink="/services" class="nav-link" routerLinkActive="active">Services</a>
-    <a routerLink="/doctors" class="nav-link" routerLinkActive="active">Doctors</a>
+<header class="patient-header">
+  <div class="patient-navbar">
+    <a routerLink="/home" class="patient-brand" aria-label="InnoClinic home">
+      <span class="clinic-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6Z" />
+        </svg>
+      </span>
+      <span class="brand-name">InnoClinic <small>Patient portal</small></span>
+    </a>
 
-    @if (isLoggedIn) {
-      <a routerLink="/onboarding" class="nav-link" routerLinkActive="active">Profile</a>
-      
-      <a routerLink="/profile" class="nav-link" routerLinkActive="active">My Profile</a>
-      
-      <button (click)="logout()" class="btn btn-outline">Log out</button>
-    } @else {
-      <button (click)="login()" class="btn btn-primary">Log in / Sign up</button>
-    }
+    <nav class="patient-navigation" aria-label="Primary">
+      <a routerLink="/doctors" routerLinkActive="active" ariaCurrentWhenActive="page">Doctors</a>
+      <a routerLink="/services" routerLinkActive="active" ariaCurrentWhenActive="page">Services</a>
+      @if (isLoggedIn) {
+        <a routerLink="/profile" routerLinkActive="active" ariaCurrentWhenActive="page">My profile</a>
+        <a routerLink="/onboarding" routerLinkActive="active" ariaCurrentWhenActive="page">Set up profile</a>
+      }
+    </nav>
+
+    <div class="patient-actions">
+      @if (isLoggedIn) {
+        <button type="button" (click)="logout()" class="clinic-button">Log out</button>
+      } @else {
+        <button type="button" (click)="login()" class="clinic-button clinic-button-outlined">Log in</button>
+      }
+      <button type="button" (click)="openBooking()" class="clinic-button clinic-button-filled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4m8-4v4M3 10h18" />
+        </svg>
+        <span>Book a visit</span>
+      </button>
+    </div>
   </div>
-</nav>
+</header>
 
 @if (isAppointmentModalOpen) {
-  <app-appointment-modal (close)="isAppointmentModalOpen = false"></app-appointment-modal>
+  <app-appointment-modal (close)="isAppointmentModalOpen = false" />
 }

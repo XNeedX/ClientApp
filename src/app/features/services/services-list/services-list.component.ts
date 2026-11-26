@@ -1,66 +1,55 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { Category, ServiceCatalog } from '../models/service.model';
 import { ClinicServiceService } from '../services/clinic-service.service';
-import { ClinicService, Category } from '../models/service.model';
+
+type CategoryState =
+  | { status: 'loading' | 'error' }
+  | { status: 'loaded'; data: ServiceCatalog };
 
 @Component({
   selector: 'app-services-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CurrencyPipe],
   templateUrl: './services-list.component.html',
-  styleUrls: ['./services-list.component.css']
+  styleUrl: './services-list.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServicesListComponent implements OnInit {
-  private clinicServiceService = inject(ClinicServiceService);
-  private cdr = inject(ChangeDetectorRef); 
+  private readonly clinicServices = inject(ClinicServiceService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly categories = signal<Partial<Record<Category, CategoryState>>>({});
 
-  public CategoryEnum = Category;
-  activeTab: Category = Category.Consultations; 
+  protected readonly CategoryEnum = Category;
+  protected readonly activeTab = signal(Category.Consultations);
+  protected readonly current = computed(() => this.categories()[this.activeTab()]);
 
-  consultations: { [key: string]: ClinicService[] } = {};
-  diagnostics: ClinicService[] = [];
-  analyses: ClinicService[] = [];
-
-  private loadedCategories: Set<Category> = new Set();
-
-  ngOnInit() {
-    this.loadDataForTab(this.activeTab);
+  ngOnInit(): void {
+    this.load(this.activeTab());
   }
 
-  switchTab(tab: Category) {
-    this.activeTab = tab;
-    if (!this.loadedCategories.has(tab)) {
-      this.loadDataForTab(tab);
-    }
+  protected switchTab(tab: Category): void {
+    this.activeTab.set(tab);
+    if (this.categories()[tab] === undefined) this.load(tab);
   }
 
-  private loadDataForTab(category: Category) {
-    this.clinicServiceService.getServicesByCategory(category).subscribe({
-      next: (services: ClinicService[]) => {
-        if (category === Category.Consultations) {
-          const activeConsultations = services.filter(s => s.specialization?.status === 'Active');
-          
-          this.consultations = activeConsultations.reduce((acc: { [key: string]: ClinicService[] }, curr: ClinicService) => {
-            const specName = curr.specialization?.name || 'Uncategorized';
-            if (!acc[specName]) {
-              acc[specName] = [];
-            }
-            acc[specName].push(curr);
-            return acc;
-          }, {});
+  protected retry(): void {
+    this.load(this.activeTab());
+  }
 
-        } else if (category === Category.Diagnostics) {
-          this.diagnostics = services;
-        } else if (category === Category.Analyses) {
-          this.analyses = services;
-        }
-
-        this.loadedCategories.add(category);
-        this.cdr.detectChanges(); 
-      },
-      error: (err: unknown) => {
-        console.error(`Error fetching services for category ${category}`, err);
-      }
+  private load(category: Category): void {
+    this.setCategory(category, { status: 'loading' });
+    this.clinicServices.getServicesByCategory(category).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: (data) => this.setCategory(category, { status: 'loaded', data }),
+      error: () => this.setCategory(category, { status: 'error' }),
     });
+  }
+
+  private setCategory(category: Category, state: CategoryState): void {
+    this.categories.update((categories) => ({ ...categories, [category]: state }));
   }
 }

@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { RouterModule } from '@angular/router'; 
 import { KeycloakService } from 'keycloak-angular';
 import { AppointmentModalComponent } from '../../../features/appointments/appointment-modal/appointment-modal.component';
@@ -13,18 +13,25 @@ import { AppointmentModalComponent } from '../../../features/appointments/appoin
 })
 export class NavbarComponent implements OnInit {
   private keycloak = inject(KeycloakService);
+  private location = inject(Location);
   isLoggedIn = false;
-  userName = '';
   
   isAppointmentModalOpen = false;
 
   async ngOnInit() {
     this.isLoggedIn = await this.keycloak.isLoggedIn();
-    
-    if (this.isLoggedIn) {
-      const userProfile = await this.keycloak.loadUserProfile();
-      this.userName = userProfile.username || 'Patient';
+    if (this.isLoggedIn && this.location.path() === '/doctors?book=1') {
+      this.location.replaceState('/doctors');
+      this.isAppointmentModalOpen = true;
     }
+  }
+
+  openBooking(): void {
+    if (!this.isLoggedIn) {
+      void this.keycloak.login({ redirectUri: window.location.origin + '/doctors?book=1' });
+      return;
+    }
+    this.isAppointmentModalOpen = true;
   }
 
   login() {

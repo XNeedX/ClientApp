@@ -1,82 +1,100 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { KeycloakService } from 'keycloak-angular';
-import { PatientService } from '../services/patient.service'; 
-import { environment } from '../../../../environments/environment'; 
+import { firstValueFrom } from 'rxjs';
+
+import { documentImageUrl } from '../../../core/models/document-image';
+import { AppointmentHistoryItem, AppointmentResult } from '../../appointments/models/appointment.model';
+import { AppointmentService } from '../../appointments/services/appointment.service';
 import { PatientProfileDto } from '../models/patient.model';
+import { PatientService } from '../services/patient.service';
+
+type LoadingStatus = 'loading' | 'ready' | 'missing' | 'error';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule],
+  imports: [DatePipe, RouterLink],
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.css']
+  styleUrl: './profile.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent implements OnInit {
-  private keycloak = inject(KeycloakService);
-  private patientService = inject(PatientService);
-  private cdr = inject(ChangeDetectorRef); 
+  private readonly keycloak = inject(KeycloakService);
+  private readonly patients = inject(PatientService);
+  private readonly appointments = inject(AppointmentService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
-  profileData: PatientProfileDto | null = null; 
-  isLoading = true;
-  
-  activeTab: 'personal' | 'appointments' = 'personal';
+  protected readonly state = signal<LoadingStatus>('loading');
+  protected readonly profile = signal<PatientProfileDto | null>(null);
+  protected readonly activeTab = signal<'personal' | 'appointments'>('personal');
+  protected readonly visits = signal<AppointmentHistoryItem[]>([]);
+  protected readonly historyStatus = signal<LoadingStatus>('missing');
+  protected readonly openResultId = signal<string | null>(null);
+  protected readonly result = signal<AppointmentResult | null>(null);
+  protected readonly resultStatus = signal<LoadingStatus>('missing');
 
-  async ngOnInit() {
+  ngOnInit(): void {
+    void this.loadProfile();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      if (params.get('tab') === 'appointments') this.switchTab('appointments');
+    });
+  }
+
+  protected async loadProfile(): Promise<void> {
+    this.state.set('loading');
     try {
-      const isLoggedIn = await this.keycloak.isLoggedIn();
-      
-      if (isLoggedIn) {
-        const userProfile = await this.keycloak.loadUserProfile();
-        const accountId = userProfile.id;
-
-        if (accountId) {
-          this.patientService.getProfileByAccountId(accountId).subscribe({
-            next: (response) => {
-              this.profileData = response.data ?? null;
-              this.isLoading = false;
-              this.cdr.detectChanges(); 
-            },
-            error: (err) => {
-              console.error('Error fetching profile:', err);
-              this.isLoading = false;
-              this.cdr.detectChanges(); 
-            }
-          });
-          
-        }
-      }
-      
-      this.isLoading = false;
-      this.cdr.detectChanges(); 
-      
-    } catch (error) {
-      console.error('Keycloak authentication error:', error);
-      this.isLoading = false;
-      this.cdr.detectChanges(); 
+      const { id } = await this.keycloak.loadUserProfile();
+      if (!id) throw new Error('Patient account is unavailable.');
+      const response = await firstValueFrom(this.patients.getProfileByAccountId(id));
+      if (!response.isSuccess || !response.data) throw new Error('Patient profile is unavailable.');
+      this.profile.set(response.data);
+      this.state.set('ready');
+    } catch (error: unknown) {
+      this.state.set(error instanceof HttpErrorResponse && error.status === 404 ? 'missing' : 'error');
     }
   }
 
-  switchTab(tab: 'personal' | 'appointments') {
-    this.activeTab = tab;
-    this.cdr.detectChanges(); 
+  protected switchTab(tab: 'personal' | 'appointments'): void {
+    this.activeTab.set(tab);
+    if (tab === 'appointments') this.loadHistory();
   }
 
-  getPhotoUrl(photoId?: string | null): string {
-    if (!photoId) {
-      return 'assets/images/default-avatar.png'; 
-    }
-    return `${environment.gatewayUrl}/files/${photoId}`; 
+  protected loadHistory(): void {
+    if (this.historyStatus() === 'loading') return;
+    this.historyStatus.set('loading');
+    this.appointments.getHistory().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (items) => {
+        this.visits.set(items);
+        this.historyStatus.set('ready');
+      },
+      error: () => this.historyStatus.set('error'),
+    });
   }
 
-  onImageError(event: Event) {
-    const target = event.target as HTMLImageElement;
-    const fallbackImage = 'assets/images/default-avatar.png';
+  protected showResult(visit: AppointmentHistoryItem): void {
+    if (!visit.resultId) return;
+    this.openResultId.set(visit.appointmentId);
+    this.result.set(null);
+    this.resultStatus.set('loading');
 
-    if (target.src.includes('default-avatar.png')) {
-      return;
-    }
-    
-    target.src = fallbackImage;
+    this.appointments.getResult(visit.appointmentId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (result) => {
+        if (this.openResultId() !== visit.appointmentId) return;
+        this.result.set(result);
+        this.resultStatus.set('ready');
+      },
+      error: () => {
+        if (this.openResultId() === visit.appointmentId) this.resultStatus.set('error');
+      },
+    });
+  }
+
+  protected getPhotoUrl(photoId?: string | null): string | null {
+    return documentImageUrl(photoId);
   }
 }

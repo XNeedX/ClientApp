@@ -32,6 +32,6 @@ describe('App', () => {
     await fixture.whenStable();
     fixture.detectChanges(); 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.logo')?.textContent).toContain('InnoClinic');
+    expect(compiled.querySelector('[aria-label="InnoClinic home"]')?.textContent).toContain('InnoClinic');
   });
 });

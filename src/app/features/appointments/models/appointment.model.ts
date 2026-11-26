@@ -1,40 +1,53 @@
-export enum Status {
-  Active = 0,
-  Inactive = 1
-}
-
-export enum ServiceCategory {
-  Analyses = 0,
-  Consultations = 1,
-  Diagnostics = 2
-}
-
 export interface Office {
   id: string;
-  status: Status;
   address: string;
 }
 
-export interface Doctor {
+export interface BookingDoctor {
   id: string;
-  firstName: string;
-  lastName: string;
-  middleName?: string | null;
-  specialization: string; 
-  status: Status; 
+  fullName: string;
+  specializationId: string;
+  officeId: string;
 }
 
-export interface TimeSlotUi {
-  time: string; 
-  fullDateTime: string;
-  isAvailable: boolean;
+export interface BookingService {
+  id: string;
+  name: string;
+  specializationId: string;
+}
+
+export interface BookingSpecialization {
+  id: string;
+  name: string;
+}
+
+export interface BookingCatalogs {
+  doctors: BookingDoctor[];
+  offices: Office[];
+  services: BookingService[];
+  specializations: BookingSpecialization[];
 }
 
 export interface CreateAppointmentCommand {
   serviceId: string;
   doctorId: string;
   officeId: string;
-  patientId?: string; 
-  date: string; 
+  date: string;
   timeSlot: string;
+}
+
+export interface AppointmentHistoryItem {
+  appointmentId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  doctorFullName: string;
+  serviceName: string;
+  resultId: string | null;
+}
+
+export interface AppointmentResult {
+  complaints: string;
+  conclusion: string;
+  recommendations: string;
 }
